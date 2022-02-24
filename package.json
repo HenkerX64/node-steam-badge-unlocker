@@ -1,0 +1,37 @@
+{
+  "name": "steam-badge-unlocker",
+  "version": "1.0.0",
+  "description": "Provides an interface to solve most quests of the Steam Community badge.",
+  "main": "index.js",
+  "files": [
+    "classes/",
+    "components/",
+    "resources/",
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HenkerX64/node-steam-badge-unlocker.git"
+  },
+  "keywords": [
+    "steam",
+    "steam community",
+    "steam badge",
+    "steam tasks",
+    "steam awards",
+    "steam api"
+  ],
+  "author": "HenkerX64",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HenkerX64/node-steam-badge-unlocker/issues"
+  },
+  "homepage": "https://github.com/HenkerX64/node-steam-badge-unlocker",
+  "dependencies": {
+    "steamcommunity": "^3.43.1"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "scripts": {}
+}
