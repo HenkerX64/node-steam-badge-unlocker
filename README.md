@@ -1,6 +1,6 @@
 # Steam Community Badge Unlocker for Node.js
 [![npm version](https://img.shields.io/npm/v/steam-badge-unlocker.svg)](https://npmjs.com/package/steam-badge-unlocker)
-[![license](https://img.shields.io/npm/l/node-steam-badge-unlocker.svg)](https://github.com/HenkerX64/node-steam-badge-unlocker/blob/master/LICENSE)
+[![license](https://img.shields.io/npm/l/steam-badge-unlocker.svg)](https://github.com/HenkerX64/node-steam-badge-unlocker/blob/master/LICENSE)
 
 This module provides a library for steam members, who want to complete basic tasks on Steam. It is based on [node-steamcommunity](https://github.com/DoctorMcKay/node-steamcommunity) library and extends missing functionalities.
 
