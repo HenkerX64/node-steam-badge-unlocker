@@ -144,7 +144,10 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 
 require('./components/apps');
 require('./components/broadcast');
+require('./components/discussions');
 require('./components/guides');
+require('./components/videos');
+require('./components/wishlist');
 require('./components/workshop');
 
 
