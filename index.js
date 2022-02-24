@@ -152,6 +152,7 @@ require('./components/sharedfiles');
 require('./components/videos');
 require('./components/wishlist');
 require('./components/workshop');
+require('./classes/CCommunityLeader');
 
 
 /** @typedef {module:http.IncomingMessage} ResponseMessage */
