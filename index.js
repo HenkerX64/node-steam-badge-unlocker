@@ -142,6 +142,11 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 }
 
 
+require('./components/apps');
+require('./components/broadcast');
+require('./components/guides');
+require('./components/workshop');
+
 
 /** @typedef {module:http.IncomingMessage} ResponseMessage */
 /** @typedef {{
