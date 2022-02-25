@@ -205,7 +205,6 @@ function CCommunityLeader(communityBadge, options) {
 			friendQuests.push('PostCommentOnFriendsPage');
 		}
 		await execute(friendQuests.concat([
-			'PostCommentOnFriendsScreenshot',
 			'RateUpContentInActivityFeed',
 			'UseEmoticonInChat',
 		]));
@@ -220,6 +219,7 @@ function CCommunityLeader(communityBadge, options) {
 		]);
 		if (!this.isLimitedAccount) {
 			await execute([
+				'PostCommentOnFriendsScreenshot',
 				'RecommendGame',
 			]);
 		}
@@ -405,10 +405,14 @@ CCommunityLeader.prototype.PostVideo = function () {
 	return new Promise(async (resolve) => {
 		this._badgeUnlocker.setYoutubeCookies(this.options.youtubeCookies);
 		if (!this.options.youtubeId) {
-			resolve(false);
-			return;
+			const videos = await this._badgeUnlocker.fetchYoutubeVideos().catch(() => []);
+			if (videos.length === 0) {
+				resolve(false);
+				return;
+			}
+			this.options.youtubeId = videos[0].youtubeId;
 		}
-		const postedVideos = await this._badgeUnlocker.postYoutubeVideo(this.options.youtubeId);
+		const postedVideos = await this._badgeUnlocker.postYoutubeVideo(this.options.youtubeId).catch(() => 0);
 		if (postedVideos > 0) {
 			const videos = await this._badgeUnlocker.getProfileVideos().catch(() => []);
 			for (let video of videos) {

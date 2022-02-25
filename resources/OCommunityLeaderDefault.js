@@ -1,3 +1,5 @@
+// noinspection JSValidateJSDoc
+
 /** @class OCommunityLeaderDefault */
 module.exports = {
 	/** @type {string} */
@@ -34,11 +36,11 @@ module.exports = {
 	/** @type {string} */
 	screenshotPath: __dirname + '/empty.png',
 
-	/** @type {string} */
+	/** @type {string|null} (optional) */
 	youtubeId: null,
 	/** @type {YoutubeCookies} */
 	youtubeCookies: {
-		accessToken: '',
+		accessToken: null,
 		authAccount: '',
 		refreshToken: 'null',
 	},
