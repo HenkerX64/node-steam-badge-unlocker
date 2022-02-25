@@ -119,6 +119,10 @@ SteamBadgeUnlocker.prototype.postYoutubeVideo = function (youtubeIds, appId = 0,
                resolve(Number(addedMatches[1]));
                return;
            }
+		   if (html.match('Access your YouTube videos')) {
+			   reject(new Error('INVALID_YOUTUBE_ACCESS_TOKEN'));
+			   return;
+		   }
 
            resolve(0);
 
