@@ -186,7 +186,7 @@ function CCommunityLeader(communityBadge, options) {
             await executeAll(friendQuests);
         }
         // To post this comment, your account must have Steam Guard enabled.
-        if (openQuests.findIndex(quest => quest.name === 'SetupSteamGuard') < 0) {
+        if (openQuests.filter(quest => !!quest).findIndex(quest => quest.name === 'SetupSteamGuard') < 0) {
             friendQuests.push('PostCommentOnFriendsPage');
         }
         await execute(friendQuests.concat([
