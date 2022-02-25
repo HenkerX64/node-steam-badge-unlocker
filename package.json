@@ -1,6 +1,6 @@
 {
   "name": "steam-badge-unlocker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Provides an interface to solve most quests of the Steam Community badge.",
   "main": "index.js",
   "files": [
