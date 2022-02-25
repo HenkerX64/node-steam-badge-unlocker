@@ -6,23 +6,23 @@ const SteamBadgeUnlocker = require('../index');
  * @returns {Promise<string>}
  */
 SteamBadgeUnlocker.prototype.clearDiscoveryQueueAppId = function (appId, queueAppId = 10) {
-    return this.post({
-        url: 'https://store.steampowered.com/app/' + queueAppId,
-        qs: {
-            l: this.getLanguage(),
-        },
-        form: {
-            sessionid: this.getSessionId(),
-            appid_to_clear_from_queue: appId,
-        },
-        headers: {
-            'Origin': 'https://store.steampowered.com',
-            'Accept': '*/*',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'Referer': 'https://store.steampowered.com/app/'  + queueAppId,
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-    });
+	return this.post({
+		url: 'https://store.steampowered.com/app/' + queueAppId,
+		qs: {
+			l: this.getLanguage(),
+		},
+		form: {
+			sessionid: this.getSessionId(),
+			appid_to_clear_from_queue: appId,
+		},
+		headers: {
+			'Origin': 'https://store.steampowered.com',
+			'Accept': '*/*',
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+			'Referer': 'https://store.steampowered.com/app/' + queueAppId,
+			'X-Requested-With': 'XMLHttpRequest',
+		},
+	});
 }
 
 /**
@@ -31,38 +31,38 @@ SteamBadgeUnlocker.prototype.clearDiscoveryQueueAppId = function (appId, queueAp
  * @returns {Promise<DiscoveryQueueResult>}
  */
 SteamBadgeUnlocker.prototype.generateNewDiscoveryQueue = function (eQueueType = 0) {
-    return this.post({
-        url: 'https://store.steampowered.com/explore/generatenewdiscoveryqueue',
-        qs: {
-            l: this.getLanguage(),
-        },
-        json: true,
-        form: {
-            sessionid: this.getSessionId(),
-            queuetype: eQueueType,
-        },
-        headers: {
-            'Origin': 'https://store.steampowered.com',
-            'Accept': '*/*',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'Referer': 'https://store.steampowered.com/explore/',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-    });
+	return this.post({
+		url: 'https://store.steampowered.com/explore/generatenewdiscoveryqueue',
+		qs: {
+			l: this.getLanguage(),
+		},
+		json: true,
+		form: {
+			sessionid: this.getSessionId(),
+			queuetype: eQueueType,
+		},
+		headers: {
+			'Origin': 'https://store.steampowered.com',
+			'Accept': '*/*',
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+			'Referer': 'https://store.steampowered.com/explore/',
+			'X-Requested-With': 'XMLHttpRequest',
+		},
+	});
 }
 
 /**
  * @returns {Promise<Array<PromiseSettledResult<Awaited<string>>>>}
  */
 SteamBadgeUnlocker.prototype.finishDiscoveryQueue = function () {
-    return this.generateNewDiscoveryQueue().then((result) => {
-        /** @var {Promise[]} */
-        const queue = [];
-        for (let appId of result.queue) {
-            queue.push(this.clearDiscoveryQueueAppId(appId));
-        }
-        return Promise.allSettled(queue);
-    }, (e) => Promise.reject(e));
+	return this.generateNewDiscoveryQueue().then((result) => {
+		/** @var {Promise[]} */
+		const queue = [];
+		for (let appId of result.queue) {
+			queue.push(this.clearDiscoveryQueueAppId(appId));
+		}
+		return Promise.allSettled(queue);
+	}, (e) => Promise.reject(e));
 }
 
 /**
@@ -71,25 +71,25 @@ SteamBadgeUnlocker.prototype.finishDiscoveryQueue = function () {
  * @returns {Promise<string>}
  */
 SteamBadgeUnlocker.prototype.getAllContentHome = function (subSection, params = {}) {
-    /** @type {AllContentHomeQuery} */
-    const qs = {
-        l: this.getLanguage(),
-        p: 1,
-        numperpage: 1,
-        appHubSubSection: SteamBadgeUnlocker.ESubSection[subSection],
-        browsefilter: 'trend',
-        ...(params.qs || {}),
-    };
-    return this.get({
-        url: 'https://steamcommunity.com/apps/allcontenthome/',
-        qs,
-        headers: {
-            'Origin': 'https://steamcommunity.com',
-            'Accept': '*/*',
-            'Referer': 'https://steamcommunity.com' + (subSection ? '/?subsection=' + subSection : ''),
-            ...(params.headers || {}),
-        },
-    });
+	/** @type {AllContentHomeQuery} */
+	const qs = {
+		l: this.getLanguage(),
+		p: 1,
+		numperpage: 1,
+		appHubSubSection: SteamBadgeUnlocker.ESubSection[subSection],
+		browsefilter: 'trend',
+		...(params.qs || {}),
+	};
+	return this.get({
+		url: 'https://steamcommunity.com/apps/allcontenthome/',
+		qs,
+		headers: {
+			'Origin': 'https://steamcommunity.com',
+			'Accept': '*/*',
+			'Referer': 'https://steamcommunity.com' + (subSection ? '/?subsection=' + subSection : ''),
+			...(params.headers || {}),
+		},
+	});
 }
 
 /** @typedef {{

@@ -1,8 +1,11 @@
 # Steam Community Badge Unlocker for Node.js
+
 [![npm version](https://img.shields.io/npm/v/steam-badge-unlocker.svg)](https://npmjs.com/package/steam-badge-unlocker)
 [![license](https://img.shields.io/npm/l/steam-badge-unlocker.svg)](https://github.com/HenkerX64/node-steam-badge-unlocker/blob/master/LICENSE)
 
-This module provides a library for steam members, who want to complete basic tasks on Steam. It is based on [node-steamcommunity](https://github.com/DoctorMcKay/node-steamcommunity) library and extends missing functionalities.
+This module provides a library for steam members, who want to complete basic tasks on Steam. It is based
+on [node-steamcommunity](https://github.com/DoctorMcKay/node-steamcommunity) library and extends missing
+functionalities.
 
 > **Note:** This project can be helpful for steam members with a farm or multiple accounts. Users with 1 or 2 accounts should try to solve steam community badge yourself for better experience with Steam.
 
@@ -28,9 +31,9 @@ or from git:
 
 ### 1) Community Leader Badge (23+ tasks):
 
-  [<img src="https://community.cloudflare.steamstatic.com/public/images/badges/01_community/communityleader_80.png" width="32px" height="32px" title="Community Leader (27+ completed quests)">](https://steamcommunity.com/my/badges/2)
-  <img src="https://community.cloudflare.steamstatic.com/public/images/badges/01_community/community03_80.png" width="32px" height="32px" title="Community Ambassador (21+ completed quests)">
-  <img src="https://community.cloudflare.steamstatic.com/public/images/badges/01_community/community02_80.png" width="32px" height="32px" title="Pillar of Community (13+ completed quests)">
+[<img src="https://community.cloudflare.steamstatic.com/public/images/badges/01_community/communityleader_80.png" width="32px" height="32px" title="Community Leader (27+ completed quests)">](https://steamcommunity.com/my/badges/2)
+<img src="https://community.cloudflare.steamstatic.com/public/images/badges/01_community/community03_80.png" width="32px" height="32px" title="Community Ambassador (21+ completed quests)">
+<img src="https://community.cloudflare.steamstatic.com/public/images/badges/01_community/community02_80.png" width="32px" height="32px" title="Pillar of Community (13+ completed quests)">
 
 1. Add comment on friend's profile
 2. Add comment on friend's screenshot

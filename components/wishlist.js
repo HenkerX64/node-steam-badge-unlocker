@@ -7,11 +7,11 @@ const SteamBadgeUnlocker = require('../index');
  * @param {string} url
  */
 SteamBadgeUnlocker.prototype.makeNavCookie = function (snr, url) {
-    const dateExpires = new Date();
-    dateExpires.setTime(dateExpires.getTime() + 1000 * 60);
-    this.getCommunity().setCookies([
-        'snr=' + snr + '|' + encodeURIComponent(url) + '; expires=' + dateExpires.toUTCString() + ';path=/',
-    ]);
+	const dateExpires = new Date();
+	dateExpires.setTime(dateExpires.getTime() + 1000 * 60);
+	this.getCommunity().setCookies([
+		'snr=' + snr + '|' + encodeURIComponent(url) + '; expires=' + dateExpires.toUTCString() + ';path=/',
+	]);
 }
 
 /**
@@ -22,26 +22,26 @@ SteamBadgeUnlocker.prototype.makeNavCookie = function (snr, url) {
  * @returns {Promise<{success: boolean, wishlistCount: number}>}
  */
 SteamBadgeUnlocker.prototype.modifyWishlist = function (navRef, appId, remove) {
-    const url = 'https://store.steampowered.com/api/' + (remove ? 'removefromwishlist' : 'addtowishlist');
-    this.makeNavCookie(navRef, url);
+	const url = 'https://store.steampowered.com/api/' + (remove ? 'removefromwishlist' : 'addtowishlist');
+	this.makeNavCookie(navRef, url);
 
-    return this.post({
-        url,
-        followAllRedirects: true,
-        followOriginalHttpMethod: true,
-        json: true,
-        form: {
-            appid: appId,
-            sessionid: this.getSessionId(),
-            snr: navRef,
-        },
-        headers: {
-            'Origin': 'https://store.steampowered.com',
-            'Accept': '*/*',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'Referer': 'https://store.steampowered.com/app/' + appId
-        }
-    });
+	return this.post({
+		url,
+		followAllRedirects: true,
+		followOriginalHttpMethod: true,
+		json: true,
+		form: {
+			appid: appId,
+			sessionid: this.getSessionId(),
+			snr: navRef,
+		},
+		headers: {
+			'Origin': 'https://store.steampowered.com',
+			'Accept': '*/*',
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+			'Referer': 'https://store.steampowered.com/app/' + appId
+		}
+	});
 }
 
 /**
@@ -51,7 +51,7 @@ SteamBadgeUnlocker.prototype.modifyWishlist = function (navRef, appId, remove) {
  * @returns {Promise<{success: boolean, wishlistCount: number}>}
  */
 SteamBadgeUnlocker.prototype.addToWishlist = function (appId, navRef = '1_direct-navigation__') {
-    return this.modifyWishlist(navRef, appId, false);
+	return this.modifyWishlist(navRef, appId, false);
 }
 
 /**
@@ -61,7 +61,7 @@ SteamBadgeUnlocker.prototype.addToWishlist = function (appId, navRef = '1_direct
  * @returns {Promise<{success?: boolean, wishlistCount: number}>}
  */
 SteamBadgeUnlocker.prototype.removeFromWishlist = function (appId, navRef = '1_direct-navigation__') {
-    return this.modifyWishlist(navRef, appId, true);
+	return this.modifyWishlist(navRef, appId, true);
 }
 
 
