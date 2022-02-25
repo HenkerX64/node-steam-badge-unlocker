@@ -4,6 +4,7 @@ module.exports = {
     friendSteamId: null,
     forceRemoveFriend: false,
     forceAddFriend: false,
+	fetchBadgesWithApiKey: true,
     /** @type {number} Last Year */
     wishlistAppId: 1195460,
     /** @type {number|null} (optional) */

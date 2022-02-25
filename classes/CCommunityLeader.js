@@ -95,7 +95,8 @@ function CCommunityLeader(communityBadge, options) {
      * @param {*} value
      */
     function logger(key, value) {
-        console.log(formatDate(new Date()), '-', communityBadge.getSteamId(), '-', `${key.padStart(30, ' ')}`, value);
+        // noinspection JSForgottenDebugStatementInspection
+		console.log(formatDate(new Date()), '-', communityBadge.getSteamId(), '-', `${key.padStart(30, ' ')}`, value);
     }
 
     this.log = this.options.log || logger;
@@ -113,14 +114,28 @@ function CCommunityLeader(communityBadge, options) {
         }
     }
 
+	/** @returns {Promise<Array<CommunityBadgeQuest>>} */
+	const getOpenQuests = async () => {
+		let apiKey = '';
+		if (this.options.fetchBadgesWithApiKey && !this.isLimitedAccount) {
+			apiKey = await this._badgeUnlocker.getWebApiKey().catch(() => '');
+		}
+		let progress;
+		if (apiKey === '') {
+			progress = await this._badgeUnlocker.getCommunityBadgeProgressFromProfile(2);
+		} else {
+			progress = await this._badgeUnlocker.getCommunityBadgeProgress(apiKey, 2);
+		}
+		if (!progress.response.quests) {
+			this.log('error', 'not able to get badge progress');
+			return [];
+		}
+		return progress.response.quests.filter(quest => !quest.completed);
+	}
+
     this.start = async function () {
         await this.init();
-        const badgeProgress = await this._badgeUnlocker.getCommunityBadgeProgressFromProfile(2);
-        if (!badgeProgress.response) {
-            this.log('error', 'try again later');
-            return;
-        }
-        const openQuests = badgeProgress.response.quests.filter(quest => !quest.completed).map(quest => ({
+		const openQuests = (await getOpenQuests()).map(quest => ({
             id: quest.questid,
             name: SteamBadgeUnlocker.ECommunityBadgeQuests[quest.questid],
         }));
@@ -214,8 +229,7 @@ function CCommunityLeader(communityBadge, options) {
         if (openQuestsBefore !== openQuests.length) {
             await delay(2);
         }
-        const badgeProgressAfter = await this._badgeUnlocker.getCommunityBadgeProgressFromProfile(2);
-        const openQuestsAfter = !badgeProgressAfter.response ? openQuestsBefore : badgeProgressAfter.response.quests.filter(quest => !quest.completed).length;
+		const openQuestsAfter = (await getOpenQuests()).length;
         const solvedQuests = openQuestsBefore - openQuestsAfter;
         this.log('-', {openQuests: openQuestsAfter, solvedQuests});
         // steam client only
