@@ -15,9 +15,9 @@ Install it from [npm](https://www.npmjs.com/package/steam-badge-unlocker):
 
     $ npm install steam-badge-unlocker
 
-or from git:
+or install it with peer dependencies:
 
-    $ git clone https://github.com/HenkerX64/node-steam-badge-unlocker.git
+    $ npm install steam-badge-unlocker node-steamcommunity
 
 ## Using
 

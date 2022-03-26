@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+      - release/*
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: 'Node.js v${{ matrix.node }}'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node:
+          - 10  # EOL: 2021-04
+          - 16  # EOL: 2024-04
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '${{ matrix.node }}'
+      - uses: actions/checkout@v2
+      - name: 'Cache node_modules'
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-v${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-v${{ matrix.node }}-
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build --if-present
+      - name: Run node.js tests
+        run: npm run test

@@ -1,0 +1,184 @@
+{
+	"queue": [
+		100001,
+		100002,
+		100003,
+		100004,
+		100005,
+		100006,
+		100007,
+		100008,
+		100009,
+		100010,
+		100011,
+		100012
+	],
+	"settings": {
+		"os_win": null,
+		"os_mac": null,
+		"os_linux": null,
+		"full_controller_support": null,
+		"native_steam_controller": null,
+		"include_coming_soon": 1,
+		"excluded_tagids": [],
+		"exclude_early_access": 0,
+		"exclude_videos": 1,
+		"exclude_software": 0,
+		"exclude_dlc": null,
+		"exclude_soundtracks": 1,
+		"featured_tagids": []
+	},
+	"rgAppData": {
+		"100001": {
+			"name": "Game 100001",
+			"url_name": "Game_100001",
+			"discount_block": "<div class=\"discount_block \" data-price-final=\"233\"><div class=\"discount_pct\">-10%<\/div><div class=\"discount_prices\"><div class=\"discount_original_price\">2,59€<\/div><div class=\"discount_final_price\">2,33€<\/div><\/div><\/div>",
+			"descids": [
+				2,
+				5
+			],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100001\/header.jpg?t=1648140928",
+			"os_windows": true,
+			"dlc": true,
+			"dlc_for_app": "200001",
+			"has_live_broadcast": false,
+			"discount": true,
+			"localized": true,
+			"has_adult_content_violence": true
+		},
+		"100002": {
+			"name": "Test",
+			"url_name": "TEST",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"515\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,15€<\/div><\/div><\/div>",
+			"descids": [],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100002\/header.jpg?t=1647706963",
+			"os_windows": true,
+			"os_macos": true,
+			"has_live_broadcast": false,
+			"localized": true
+		},
+		"100003": {
+			"name": "World Before",
+			"url_name": "World_Before",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"516\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,16€</div></div></div>",
+			"descids": [
+				5
+			],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100003\/header.jpg?t=1648219451",
+			"os_windows": true,
+			"has_live_broadcast": true,
+			"localized": true
+		},
+		"100004": {
+			"name": "Café Stella",
+			"url_name": "Caf_Stella",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"517\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,17€</div></div></div>",
+			"descids": [
+				1,
+				5
+			],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100004\/header.jpg?t=1648198739",
+			"os_windows": true,
+			"has_live_broadcast": false,
+			"discount": true,
+			"localized": true
+		},
+		"100005": {
+			"name": "Animal",
+			"url_name": "Animal",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"518\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,18€</div></div></div>",
+			"descids": [],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100005\/header.jpg?t=1648238376",
+			"os_windows": true,
+			"has_live_broadcast": true,
+			"discount": true,
+			"localized": true
+		},
+		"100006": {
+			"name": "Core",
+			"url_name": "Core",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"519\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,19€</div></div></div>",
+			"descids": [],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100006\/header_alt_assets_2.jpg?t=1647972563",
+			"os_windows": true,
+			"os_linux": true,
+			"early_access": true,
+			"has_live_broadcast": true,
+			"localized": true
+		},
+		"100007": {
+			"name": "EL",
+			"url_name": "EL",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"520\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,20€</div></div></div>",
+			"descids": [
+				5
+			],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100007\/header.jpg?t=1646826681",
+			"os_windows": true,
+			"has_live_broadcast": false,
+			"localized": true
+		},
+		"100008": {
+			"name": "Home 2",
+			"url_name": "Home_2",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"521\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,21€</div></div></div>",
+			"descids": [
+				5
+			],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100008\/header_german.jpg?t=1646641841",
+			"os_windows": true,
+			"os_macos": true,
+			"has_live_broadcast": false,
+			"localized": true
+		},
+		"100009": {
+			"name": "Swords",
+			"url_name": "Swords",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"522\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,22€</div></div></div>",
+			"descids": [],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100009\/header.jpg?t=1647450902",
+			"os_windows": true,
+			"has_live_broadcast": true,
+			"localized": true
+		},
+		"100010": {
+			"name": "THE KING",
+			"url_name": "THE_KING",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"523\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,23€</div></div></div>",
+			"descids": [],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100010\/header.jpg?t=1646960580",
+			"os_windows": true,
+			"has_live_broadcast": false,
+			"localized": true
+		},
+		"100011": {
+			"name": "戀與經",
+			"url_name": "_",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"524\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,24€</div></div></div>",
+			"descids": [
+				1,
+				3,
+				5
+			],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100011\/header.jpg?t=1648036810",
+			"os_windows": true,
+			"has_live_broadcast": false,
+			"discount": true,
+			"localized": true
+		},
+		"100012": {
+			"name": "Beho 3",
+			"url_name": "Beho_3",
+			"discount_block": "<div class=\"discount_block  no_discount\" data-price-final=\"525\"><div class=\"discount_prices\"><div class=\"discount_final_price\">5,25€</div></div></div>",
+			"descids": [
+				2,
+				5
+			],
+			"header": "https:\/\/cdn.akamai.steamstatic.com\/steam\/apps\/100012\/header.jpg?t=1647604112",
+			"os_windows": true,
+			"has_live_broadcast": true,
+			"localized": true,
+			"has_adult_content_violence": true
+		}
+	}
+}
