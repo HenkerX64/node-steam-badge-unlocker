@@ -46,8 +46,36 @@ function SteamCommunityMock(options = {}) {
 	};
 
 	const response = {statusCode: 200};
+	this.resultStack = [];
+	/** @param {Array<Array<null|Error, null|{statusCode: number}, string|Object>>} results */
+	this.setResultStack = (results = []) => this.resultStack = results;
 	this.httpRequest = (params, callback) => {
+		if (this.resultStack.length > 0) {
+			const result = this.resultStack.shift();
+			return callback(result[0], result[1] || response, result[2]);
+		}
 		switch (params.url) {
+			case 'https://steamcommunity.com/id/test/badges/2':
+			case 'https://steamcommunity.com/profiles/76000000000000000/badges/2':
+				return callback(null, response, 'Completed all Steam Community tasks!');
+			case 'https://steamcommunity.com/id/test/badges':
+			case 'https://steamcommunity.com/profiles/76000000000000000/badges':
+				return callback(null, response, 'This badge is featured on your profile');
+			case 'https://steamcommunity.com/id/test/badges/':
+			case 'https://steamcommunity.com/profiles/76000000000000000/badges/':
+				return callback(
+					null,
+					response,
+					"\t<div class=\"badge_progress_info\">\n"
+					+ "\t<a href=\"https://steamcommunity.com/id/test/gamecards/730/\" class=\"badge_craft_button\">\n"
+					+ "\t\t\t\t\t\t\t\t\t\t\tReady\t\t\t\t\t\t\t\t\t\t</a>\n"
+					+ "\t</div>"
+				);
+			case 'https://steamcommunity.com/id/test/ajaxcraftbadge/':
+			case 'https://steamcommunity.com/profiles/76000000000000000/ajaxcraftbadge/':
+				return callback(null, response, {success: 1});
+			case 'https://api.steampowered.com/IPlayerService/GetCommunityBadgeProgress/v1/':
+				return callback(null, response, require('./results/getcommunitybadgeprogress.json'));
 			case 'https://store.steampowered.com/explore/generatenewdiscoveryqueue':
 				return callback(null, response, require('./results/generatenewdiscoveryqueue.json'));
 			case 'https://store.steampowered.com/app/10':
