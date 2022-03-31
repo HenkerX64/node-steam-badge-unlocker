@@ -11,6 +11,10 @@ describe('badges.js', () => {
 	require('./tests/components/badges.test');
 });
 
+describe('broadcast.js', () => {
+	require('./tests/components/broadcast.test');
+});
+
 describe('CCommunityLeader class', () => {
 	require('./tests/classes/CCommunityLeader.test');
 });

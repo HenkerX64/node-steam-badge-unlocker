@@ -8,8 +8,8 @@ function SteamCommunityMock(options = {}) {
 	this._cookies = [];
 	this.setCookies = (cookies) => this._cookies = cookies;
 
-	const createResult = (id, errorText = 'Error Fail') => {
-		return id === '1000' ? null : new Error(errorText);
+	const createResult = (id, errorText = 'Error Fail', compareId = '1000') => {
+		return id === compareId ? null : new Error(errorText);
 	};
 	const resultById = (id, callback) => {
 		return callback(createResult(id));
@@ -21,8 +21,8 @@ function SteamCommunityMock(options = {}) {
 		isLimitedAccount: false,
 		customURL: 'test',
 	});
-	this.removeFriend = resultById;
-	this.addFriend = resultById;
+	this.removeFriend = (steamId, callback) => callback(createResult(steamId, 'Malformed JSON response', '76000000000000001'));
+	this.addFriend = (steamId, callback) => callback(createResult(steamId, 'Unknown error', '76000000000000001'));
 	this.joinGroup = resultById;
 	this.leaveGroup = resultById;
 	this.deleteProfileStatus = resultById;
@@ -74,6 +74,8 @@ function SteamCommunityMock(options = {}) {
 			case 'https://steamcommunity.com/id/test/ajaxcraftbadge/':
 			case 'https://steamcommunity.com/profiles/76000000000000000/ajaxcraftbadge/':
 				return callback(null, response, {success: 1});
+			case 'https://steamcommunity.com/broadcast/getbroadcastmpd/':
+				return callback(null, response, require('./results/getbroadcastmpd.json'));
 			case 'https://api.steampowered.com/IPlayerService/GetCommunityBadgeProgress/v1/':
 				return callback(null, response, require('./results/getcommunitybadgeprogress.json'));
 			case 'https://store.steampowered.com/explore/generatenewdiscoveryqueue':
@@ -81,7 +83,11 @@ function SteamCommunityMock(options = {}) {
 			case 'https://store.steampowered.com/app/10':
 				return callback(null, response, '<html lang="en"></html>');
 			case 'https://steamcommunity.com/apps/allcontenthome/':
-				return callback(null, response, '<div></div>');
+				let result = '<div></div>';
+				if (params.qs.appHubSubSection === 13) {
+					result = "\t<a href=\"https://steamcommunity.com/broadcast/watch/76000000000000001\">\n" + "\t</a>\n";
+				}
+				return callback(null, response, result);
 			case 'https://steamcommunity.com/profiles/1000/screenshots/':
 				return callback(null, response, "<br>\n<a data-publishedfileid=\"1000\"");
 			case 'https://store.steampowered.com/points/shop':
