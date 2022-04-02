@@ -1,0 +1,24 @@
+{
+	"delete": {
+		"success": true,
+		"name": "PublishedFile_Public_76000000000000001_1000",
+		"start": 0,
+		"pagesize": "5",
+		"total_count": 0,
+		"upvotes": 0,
+		"has_upvoted": 0,
+		"comments_html": "",
+		"timelastpost": 0
+	},
+	"post": {
+		"success": true,
+		"name": "PublishedFile_Public_76000000000000001_1000",
+		"start": 0,
+		"pagesize": "5",
+		"total_count": 1,
+		"upvotes": 0,
+		"has_upvoted": 0,
+		"comments_html": "\t\t\r\n\t\r\n\t<div data-panel=\"{&quot;flow-children&quot;:&quot;row&quot;,&quot;type&quot;:&quot;PanelGroup&quot;}\" class=\"commentthread_comment responsive_body_text   \" id=\"comment_1001\" style=\"\">\r\n\t\t\t\t<div class=\"commentthread_comment_avatar playerAvatar online\">\r\n\t\t\t\t\t\t<a href=\"https:\/\/steamcommunity.com\/id\/test\" data-miniprofile=\"100000000\">\r\n\t\t\t\t\t\t\t\t\t<img src=\"https:\/\/avatars.cloudflare.steamstatic.com\/a0000000000000000000000fa00000000000000f.jpg\" srcset=\"https:\/\/avatars.cloudflare.steamstatic.com\/a0000000000000000000000fa00000000000000f.jpg 1x, https:\/\/avatars.cloudflare.steamstatic.com\/a0000000000000000000000fa00000000000000f_medium.jpg 2x\">\t\t\t\t\t\t\t<\/a>\r\n\t\t<\/div>\r\n\t\t<div class=\"commentthread_comment_content\">\r\n\t\t\t<div data-panel=\"{&quot;flow-children&quot;:&quot;row&quot;}\" class=\"commentthread_comment_author\">\r\n\t\t\t\t<a class=\"hoverunderline commentthread_author_link\" href=\"https:\/\/steamcommunity.com\/id\/test\"  data-miniprofile=\"100000000\">\r\n\t\t\t\t\t<bdi>Test<\/bdi><\/a>\r\n\r\n\t\t\t\t\r\n\t\t\t\t<span class=\"commentthread_workshop_authorbadge\">&nbsp;[Autor]<\/span>\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t\r\n\t\t\t\t<span class=\"commentthread_comment_timestamp\" title=\"3. April 2022 um 11:16:55 CEST\" data-timestamp=\"1648977415\">\r\n\t\t\t\t\tGerade eben&nbsp;\r\n\t\t\t\t<\/span>\r\n\t\t\t\t\t\t\t\t<div class=\"commentthread_comment_actions\" >\r\n\t\t\t\t\t<a class=\"actionlink\" data-tooltip-text=\"Löschen\" href=\"javascript:CCommentThread.DeleteComment( 'PublishedFile_Public_76000000000000001_1000', '1001'  );\"><img src=\"https:\/\/community.cloudflare.steamstatic.com\/public\/images\/skin_1\/notification_icon_trash_bright.png?v=1\" ><\/a>\t\t\t\t<\/div>\r\n\t\t\t<\/div>\r\n\t\t\t<div class=\"commentthread_comment_text\" id=\"comment_content_1001\">\r\n\t\t\t\tcomment text\t\t\t<\/div>\r\n\t\t\t\t\t\t\t\t<\/div>\r\n\t\t\t<\/div>\r\n",
+		"timelastpost": 1648977415
+	}
+}
