@@ -12,7 +12,10 @@ jobs:
   test:
     name: 'Node.js v${{ matrix.node }}'
     runs-on: ubuntu-latest
+    env:
+      TEST_ACCOUNTS: ${{ secrets.TEST_ACCOUNTS }}
     strategy:
+      max-parallel: 1
       matrix:
         node:
           - 10  # EOL: 2021-04

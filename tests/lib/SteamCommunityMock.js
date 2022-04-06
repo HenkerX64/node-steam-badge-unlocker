@@ -114,6 +114,23 @@ function SteamCommunityMock(options = {}) {
 					+ "\t\t\t\t</a>\n"
 					+ "\t\t\t</div>"
 				);
+			case 'https://steamcommunity.com/id/test/ajaxgetusernews/':
+			case 'https://steamcommunity.com/profiles/76000000000000000/ajaxgetusernews/':
+				return callback(null, response, params.start ? {success: false} : require('./results/ajaxgetusernews.json'));
+			case 'https://steamcommunity.com/id/test/recommended/':
+			case 'https://steamcommunity.com/profiles/76000000000000000/recommended/':
+				return callback(null, response, '');
+			case 'https://steamcommunity.com/actions/LogFriendActivityUpvote':
+				return callback(null, response, 'null');
+			case 'https://steamcommunity.com/ogg/1000/selectAvatar':
+			case 'https://steamcommunity.com/ogg/582660/selectAvatar':
+				return callback(null, response, require('./results/selectavatar.json'));
+			case 'https://api.steampowered.com/IPlayerService/SetProfileBackground/v1/':
+				return callback(null, response, require('./results/setprofilebackground.json'));
+			case 'https://api.steampowered.com/IPlayerService/GetProfileItemsOwned/v1/':
+				return callback(null, response, require('./results/getprofileitemsowned.json'));
+			case 'https://store.steampowered.com/friends/recommendgame':
+				return callback(null, response, {success: true, strError: ''});
 			case 'https://steamcommunity.com/broadcast/getbroadcastmpd/':
 				return callback(null, response, require('./results/getbroadcastmpd.json'));
 			case 'https://api.steampowered.com/IPlayerService/GetCommunityBadgeProgress/v1/':
@@ -128,6 +145,8 @@ function SteamCommunityMock(options = {}) {
 				return callback(null, response, require('./results/publishedfile.json').post);
 			case 'https://steamcommunity.com/comment/PublishedFile_Public/delete/76000000000000001/1000/':
 				return callback(null, response, require('./results/publishedfile.json').delete);
+			case 'https://steamcommunity.com/comment/UserStatusPublished/upvote/76000000000000001/1000000000/':
+				return callback(null, response, require('./results/userstatuspublished.json').upvote);
 			case 'https://steamcommunity.com/sharedfiles/delete':
 			case 'https://steamcommunity.com/sharedfiles/filedetails/':
 			case 'https://steamcommunity.com/discussions/forum/search/':

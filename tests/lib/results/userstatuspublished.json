@@ -1,0 +1,14 @@
+{
+	"upvote": {
+		"success": true,
+		"name": "UserStatusPublished_76000000000000001_1000000000",
+		"start": 0,
+		"pagesize": "6",
+		"total_count": 0,
+		"upvotes": 1,
+		"has_upvoted": 1,
+		"comments_html": "",
+		"timelastpost": 0,
+		"votetext": "1 person rated this up, including <a href=\"https:\/\/steamcommunity.com\/id\/test\" data-miniprofile=\"100000000\">Test<\/a>"
+	}
+}

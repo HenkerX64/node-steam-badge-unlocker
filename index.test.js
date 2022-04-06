@@ -19,8 +19,16 @@ describe('discussions.js', () => {
 	require('./tests/components/discussions.test');
 });
 
+describe('helpers.js', () => {
+	require('./tests/components/helpers.test');
+});
+
 describe('guides.js', () => {
 	require('./tests/components/guides.test');
+});
+
+describe('profile.js', () => {
+	require('./tests/components/profile.test');
 });
 
 describe('sharedfiles.js', () => {
@@ -41,4 +49,13 @@ describe('workshop.js', () => {
 
 describe('CCommunityLeader class', () => {
 	require('./tests/classes/CCommunityLeader.test');
+});
+
+// Execute live tests only if you configured environment variable
+// Example: export TEST_ACCOUNTS="username;password;sharedKey;"
+if (typeof process.env.TEST_ACCOUNTS === 'undefined') {
+	return;
+}
+describe('Real request tests', () => {
+	require('./tests/real.test');
 });

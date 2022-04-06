@@ -1,0 +1,49 @@
+{
+	"response": {
+		"profile_backgrounds": [
+			{
+				"communityitemid": "7000000000",
+				"image_large": "items/1000/a0000000000000000000000fa00000000000000f.jpg",
+				"name": "BG1",
+				"item_title": "Test City",
+				"item_description": "",
+				"appid": 1000,
+				"item_type": 7,
+				"item_class": 3
+			},
+			{
+				"communityitemid": "7940273890",
+				"image_large": "items/866860/a0000000000000000000000fa00000000000000f.jpg",
+				"name": "BG2",
+				"item_title": "Wallpaper",
+				"item_description": "Earned for participating in the Spring Cleaning Event in 2018.",
+				"appid": 866860,
+				"item_type": 7,
+				"item_class": 3
+			},
+			{
+				"communityitemid": "11138933335",
+				"image_large": "items/1083560/a0000000000000000000000fa00000000000000f.jpg",
+				"name": "BG3",
+				"item_title": "A Messy Garage",
+				"item_description": "Earned by those who achieved the highest level badge during the Spring Cleaning Event in 2019.",
+				"appid": 1083560,
+				"item_type": 6,
+				"item_class": 3
+			}
+		],
+		"avatar_frames": [
+			{
+				"communityitemid": "17000000000",
+				"image_small": "items/1000/a0000000000000000000000fa00000000000000f.png",
+				"image_large": "items/1000/a0000000000000000000000fa00000000000000f.png",
+				"name": "The Test Avatar",
+				"item_title": "The Test Avatar",
+				"item_description": "",
+				"appid": 1000,
+				"item_type": 42,
+				"item_class": 14
+			}
+		]
+	}
+}
