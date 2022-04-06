@@ -159,7 +159,7 @@ SteamBadgeUnlocker.prototype.getLastFriendPosts = function (minPosts = 1) {
 
 /**
  * @param {{type: CommentType, action: CommentActionType, owner: string, feature: string}} params
- * @returns {Promise<{blotter_html: string, next_request: string, success: boolean, timestart: number}>}
+ * @returns {Promise<SharedFilesActivityType>}
  */
 SteamBadgeUnlocker.prototype.voteContent = function (params) {
 	return this.post({
@@ -240,3 +240,4 @@ SteamBadgeUnlocker.prototype.deleteGameRecommendation = function (appId) {
 
 /** @typedef {{communityitemid: string, image_large: string, name: string, item_title: string, item_description: string, appid: number, item_type: number, item_class: number, movie_webm?: string, movie_mp4?: string, movie_webm_small?: string, movie_mp4_small?: string}} ProfileBackgroundItem */
 /** @typedef {{profile_backgrounds: Array<ProfileBackgroundItem>, mini_profile_backgrounds: Array<ProfileBackgroundItem>, avatar_frames: Array<ProfileBackgroundItem>}} OwnedProfileItems */
+/** @typedef {{success: boolean, name: string, start: number, pagesize: string, total_count: number, upvotes: number, has_upvoted: number, comments_html: string, timelastpost: number, votetext?: string }} SharedFilesActivityType */
