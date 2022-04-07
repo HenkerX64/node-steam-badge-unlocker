@@ -61,6 +61,15 @@ SteamBadgeUnlocker.prototype.finishDiscoveryQueue = function () {
 		for (let appId of result.queue) {
 			queue.push(this.clearDiscoveryQueueAppId(appId));
 		}
+
+		// nodeJS <= 12 support
+		const version = process.version.match(/^v?(\d+)\.(\d+)\./);
+		const major = parseInt(version[1]);
+		const minor = version.length >= 3 ? parseInt(version[2]) : 0;
+		if (major < 12 || major === 12 && minor < 9) {
+			return Promise.all(queue);
+		}
+
 		return Promise.allSettled(queue);
 	}, (e) => Promise.reject(e));
 }
