@@ -70,12 +70,12 @@ SteamBadgeUnlocker.prototype.getOwnedProfileItems = async function () {
 
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/blotter_functions.js
- * @returns {Promise<void>}
+ * @returns {Promise<'null'>}
  */
 SteamBadgeUnlocker.prototype.logFriendActivityUpvote = function () {
 	return this.post({
 		url: 'https://steamcommunity.com/actions/LogFriendActivityUpvote',
-		json: true,
+		json: false,
 		form: {
 			sessionID: this.getSessionId(),
 		},
