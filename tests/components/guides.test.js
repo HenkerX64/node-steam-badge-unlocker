@@ -1,5 +1,5 @@
 const SteamBadgeUnlocker = require('../../index');
-const SteamCommunityMock = require('../lib/SteamCommunityMock');
+const SteamCommunityMock = require('../mocks/SteamCommunityMock');
 const assert = require('assert');
 
 const _badgeUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());

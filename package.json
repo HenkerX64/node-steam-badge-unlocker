@@ -47,7 +47,7 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "test": "mocha index.test.js --timeout 20000",
-    "test-cov": "nyc mocha index.test.js --timeout 20000"
+    "test": "mocha tests/index.test.js --timeout 20000",
+    "test-cov": "nyc mocha tests/index.test.js --timeout 20000"
   }
 }

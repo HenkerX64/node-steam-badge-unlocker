@@ -1,3 +1,4 @@
+const fs = require('fs');
 const Helpers = require('../../components/helpers');
 const assert = require('assert');
 
@@ -21,14 +22,8 @@ it('parseConfigString()', async () => {
 	assert.ok(1 === Helpers.parseConfigString(`${validUser};${validPass};`).length);
 	assert.ok(1 === Helpers.parseConfigString(` ${validUser}; ${validPass};`).length);
 
-	const file1 = "\n"
-		+ `${validUser}1;${validPass};\n`
-		+ `us;${validPass};\n`
-		+ `${validUser};pw;\n`
-		+ `${validUser}2;${validPass};JXVzZXJ+O3Bhc3N3b3JkOyU/XA==\n`
-		+ `${validUser}3;${validPass};;76000000000000000;master\n`;
-	const users = Helpers.parseConfigString(file1);
-	assert.ok(3, users.length);
+	const users = Helpers.parseConfigString(fs.readFileSync(__dirname + '/../fixtures/config/parseconfigstring.txt', 'utf8'));
+	assert.strictEqual(3, users.length);
 	assert.strictEqual(`${validUser}1`, users[0].accountName);
 	assert.strictEqual(`${validPass}`, users[0].password);
 	assert.strictEqual(`${validUser}2`, users[1].accountName);

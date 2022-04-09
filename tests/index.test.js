@@ -1,48 +1,61 @@
-const SteamBadgeUnlocker = require('../index');
-const SteamCommunityMock = require('./lib/SteamCommunityMock');
-const assert = require('assert');
 
-const _badgeUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
-it('getSessionId()', () => {
-	assert.strictEqual(typeof _badgeUnlocker.getSessionId, 'function', 'exists');
-	assert.strictEqual('a0000000000000000000000f', _badgeUnlocker.getSessionId(), 'check value');
+describe('index.js', () => {
+	require('./mocked.test');
 });
-it('getSteamId()', () => {
-	assert.strictEqual(typeof _badgeUnlocker.getSteamId, 'function', 'exists');
-	assert.strictEqual('76000000000000000', _badgeUnlocker.getSteamId(), 'check value');
-});
-it('getLanguage()', () => {
-	assert.strictEqual(typeof _badgeUnlocker.getLanguage, 'function', 'exists');
-	assert.strictEqual('english', _badgeUnlocker.getLanguage(), 'check value');
-});
-it('getProfileUrl()', () => {
-	assert.strictEqual(typeof _badgeUnlocker.getProfileUrl, 'function', 'exists');
-	assert.strictEqual('https://steamcommunity.com/profiles/76000000000000000', _badgeUnlocker.getProfileUrl(), 'check default url');
 
-	const tempObj = new SteamBadgeUnlocker(new SteamCommunityMock(), {customUrl: 'test'});
-	assert.strictEqual('https://steamcommunity.com/id/test', tempObj.getProfileUrl(), 'check custom url');
+describe('apps.js', () => {
+	require('./components/apps.test');
 });
-it('get()', async () => {
-	assert.strictEqual(typeof _badgeUnlocker.get, 'function', 'exists');
-	const result = await _badgeUnlocker.get({url: 'test'}).catch(() => true);
-	assert.strictEqual(true, result, 'rejected');
-});
-it('post()', async () => {
-	assert.strictEqual(typeof _badgeUnlocker.post, 'function', 'exists');
-	const result = await _badgeUnlocker.post({url: 'test'}).catch(() => true);
-	assert.strictEqual(true, result, 'rejected');
-});
-it('getWebApiKey()', async () => {
-	assert.strictEqual(typeof _badgeUnlocker.getWebApiKey, 'function', 'exists');
-	assert.strictEqual('test', await _badgeUnlocker.getWebApiKey(), 'check api key');
 
-	const tempObj = new SteamBadgeUnlocker(new SteamCommunityMock(), {apiKey: 'ABC'});
-	assert.strictEqual('ABC', await tempObj.getWebApiKey(), 'use apiKey in constructor');
+describe('badges.js', () => {
+	require('./components/badges.test');
 });
-it('getWebApiToken()', async () => {
-	assert.strictEqual(typeof _badgeUnlocker.getWebApiToken, 'function', 'exists');
-	assert.strictEqual('a000000000000000000000000000000f', await _badgeUnlocker.getWebApiToken(), 'check token');
 
-	const tempObj = new SteamBadgeUnlocker(new SteamCommunityMock(), {apiToken: 'ABC'});
-	assert.strictEqual('ABC', await tempObj.getWebApiToken(), 'use apiToken in constructor');
+describe('broadcast.js', () => {
+	require('./components/broadcast.test');
+});
+
+describe('discussions.js', () => {
+	require('./components/discussions.test');
+});
+
+describe('helpers.js', () => {
+	require('./components/helpers.test');
+});
+
+describe('guides.js', () => {
+	require('./components/guides.test');
+});
+
+describe('profile.js', () => {
+	require('./components/profile.test');
+});
+
+describe('sharedfiles.js', () => {
+	require('./components/sharedfiles.test');
+});
+
+describe('videos.js', () => {
+	require('./components/videos.test');
+});
+
+describe('wishlist.js', () => {
+	require('./components/wishlist.test');
+});
+
+describe('workshop.js', () => {
+	require('./components/workshop.test');
+});
+
+describe('CCommunityLeader class', () => {
+	require('./classes/CCommunityLeader.test');
+});
+
+// Execute live tests only if you configured environment variable
+// Example: export TEST_ACCOUNTS="username;password;sharedKey;"
+if (typeof process.env.TEST_ACCOUNTS === 'undefined') {
+	return;
+}
+describe('Real request tests', () => {
+	require('./real.test');
 });
