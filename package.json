@@ -28,7 +28,8 @@
   },
   "homepage": "https://github.com/HenkerX64/node-steam-badge-unlocker",
   "dependencies": {
-    "steamcommunity": "^3.43.1"
+    "steamcommunity": "^3.43.1",
+    "async": ">=2.6.4"
   },
   "engines": {
     "node": ">=8.0.0"
