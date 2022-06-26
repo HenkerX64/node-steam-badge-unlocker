@@ -66,3 +66,10 @@ taskNames.forEach(task => {
 
 });
 
+
+it('SetProfileBackground() - without crafting', async () => {
+	leader._rgDroppedItems = [];
+	leader._badgeUnlocker.setProfileBackground = id => new Promise((resolve) => resolve(id === '7000000000' ? {response: {}} : null));
+	assert.ok(await leader.SetProfileBackground());
+});
+

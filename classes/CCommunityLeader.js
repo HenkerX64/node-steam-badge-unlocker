@@ -82,6 +82,8 @@ SteamBadgeUnlocker.prototype.createCommunityLeader = function (options) {
 function CCommunityLeader(communityBadge, options) {
 	this._badgeUnlocker = communityBadge;
 	this._community = communityBadge.getCommunity();
+	/** @type {Array<CraftedDroppedItemType>} dropped items after crafting */
+	this._rgDroppedItems = [];
 	this.options = {
 		...DefaultOptions,
 		...(options || {}),
@@ -211,8 +213,12 @@ function CCommunityLeader(communityBadge, options) {
 		if (!this.isLimitedAccount && !this.tradeBanState) {
 			await execute(['Trade']);
 		}
+		// add delay after crafting
+		if (openQuests.findIndex(quest => quest && quest.name === 'CraftGameBadge') >= 0) {
+			await execute(['CraftGameBadge']);
+			await delay(1);
+		}
 		await execute([
-			'CraftGameBadge',
 			'PlayGame',
 			'SetProfileBackground',
 			'FeatureBadgeOnProfile',
@@ -285,6 +291,7 @@ CCommunityLeader.prototype.AddItemToWishlist = function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.CraftGameBadge = function () {
+	this._rgDroppedItems = [];
 	return new Promise(async (resolve) => {
 		let appId = this.options.craftGameBadgeAppId;
 		if (!appId) {
@@ -295,7 +302,11 @@ CCommunityLeader.prototype.CraftGameBadge = function () {
 			}
 			appId = apps[0];
 		}
-		resolve(!!await this._badgeUnlocker.craftBadge(appId).catch(() => null));
+		const result = await this._badgeUnlocker.craftBadge(appId).catch(() => null);
+		if (result && result.success && typeof result.rgDroppedItems !== 'undefined') {
+			this._rgDroppedItems = result.rgDroppedItems;
+		}
+		resolve(!!result);
 	});
 }
 
@@ -494,6 +505,16 @@ CCommunityLeader.prototype.SearchInDiscussions = function () {
  */
 CCommunityLeader.prototype.SetProfileBackground = function () {
 	return new Promise(async (resolve) => {
+		const item = this._rgDroppedItems.find(item => item.label === 'Background');
+		if (item && item.economy_hover_data) {
+			const idMatches = item.economy_hover_data.match(/^753\/\d\/(\d+)\/\d+/);
+			if (idMatches && idMatches.length > 1) {
+				const result = await this._badgeUnlocker.setProfileBackground(idMatches[1]).catch(() => null);
+				resolve(!!result);
+				return;
+			}
+		}
+
 		const items = await this._badgeUnlocker.getOwnedProfileItems().catch(() => null);
 		if (items && items.response.profile_backgrounds && items.response.profile_backgrounds.length > 0) {
 			const result = await this._badgeUnlocker.setProfileBackground(items.response.profile_backgrounds[0].communityitemid).catch(() => null);
