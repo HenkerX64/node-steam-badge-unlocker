@@ -74,7 +74,13 @@ function SteamCommunityMock(options = {}) {
 				return callback(null, response, getHtmlPageFixture('badges'));
 			case 'https://steamcommunity.com/id/test/ajaxcraftbadge/':
 			case 'https://steamcommunity.com/profiles/76000000000000000/ajaxcraftbadge/':
-				return callback(null, response, {success: 1});
+				if (params.form.appid !== 1000) {
+					const errorResponse = {...response, statusCode: 500};
+					const errorObj = new Error('HTTP error ' + errorResponse.statusCode);
+					errorObj.code = errorResponse.statusCode;
+					return callback(errorObj, errorResponse, null);
+				}
+				return callback(null, response, require('../fixtures/ajaxcraftbadge.json'));
 			case 'https://steamcommunity.com/id/test/videos/add/':
 			case 'https://steamcommunity.com/profiles/76000000000000000/videos/add/':
 				if (this._cookies.filter(cookie => cookie.match(/youtube_accesstoken=.*access_token/)).length === 0) {

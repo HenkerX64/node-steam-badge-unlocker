@@ -17,7 +17,14 @@ it('setFavoriteBadge()', async () => {
 });
 it('craftBadge()', async () => {
 	assert.strictEqual(typeof _badgeUnlocker.craftBadge, 'function');
-	const result = await _badgeUnlocker.craftBadge(730);
+	let thrownError = false;
+	try {
+		await _badgeUnlocker.craftBadge(730);
+	} catch (e) {
+		thrownError = true;
+	}
+	assert.ok(thrownError, 'Craft badge should trigger an error 500.');
+	const result = await _badgeUnlocker.craftBadge(1000);
 	assert.strictEqual(typeof result, 'object');
 	assert.strictEqual(result.success, 1);
 });
@@ -25,7 +32,7 @@ it('getAppIdsReadyForCrafting()', async () => {
 	assert.strictEqual(typeof _badgeUnlocker.getAppIdsReadyForCrafting, 'function');
 	const result = await _badgeUnlocker.getAppIdsReadyForCrafting();
 	assert.strictEqual(typeof result, 'object');
-	assert.strictEqual(result[0], 730);
+	assert.strictEqual(result[0], 1000);
 });
 it('getCommunityBadgeProgressFromProfile()', async () => {
 	assert.strictEqual(typeof _badgeUnlocker.getCommunityBadgeProgressFromProfile, 'function');

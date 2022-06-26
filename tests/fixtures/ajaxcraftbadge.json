@@ -1,0 +1,44 @@
+{
+	"success": 1,
+	"rgDroppedItems": [
+		{
+			"title": "Funny colors",
+			"label": "Background",
+			"description": "Example text",
+			"image": "https://community.cloudflare.steamstatic.com/economy/profilebackground/items/1000/a1000000000000000000000fa00000000000000f.jpg?size=133x83",
+			"economy_hover_data": "753/6/10000000004/76000000000000000"
+		},
+		{
+			"title": ":steamthumbsup:",
+			"label": "Emoticon",
+			"description": "Test. Description.",
+			"image": "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/items/1000/a2000000000000000000000fa00000000000000f.png",
+			"economy_hover_data": "753/6/10000000005/76000000000000000"
+		},
+		{
+			"title": "Clorthax Card Beta",
+			"label": "Trading Card",
+			"description": "Tradable",
+			"image": "https://community.cloudflare.steamstatic.com/economy/image/AAAAAAAAAAAAAA-A-aaaaaaa-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa_222222222222222222222222222222222_O0000000000_AAAAAAAAAAAAAAAAAAAAA_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA-2222222222222222222222222222222222222-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/98x115",
+			"economy_hover_data": "753/6/10000000006/76000000000000000"
+		},
+		{
+			"type": "levelup",
+			"level_css_class": "friendPlayerLevel lvl_10",
+			"level": 11
+		},
+		{
+			"title": "5 Slot Level Bonus",
+			"label": "Friends List Slot",
+			"description": "Not tradable",
+			"image": "https://community.cloudflare.steamstatic.com/public/images/profile/badge_craft_morefriends.png?v=2"
+		}
+	],
+	"Badge": {
+		"image": "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/items/1000/a0000000000000000000000fa00000000000000f.png",
+		"title": ",Silver",
+		"xp": "100",
+		"unlocked_time": 1648977415,
+		"game": "The Game"
+	}
+}
