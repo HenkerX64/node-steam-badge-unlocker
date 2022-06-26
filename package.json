@@ -30,6 +30,7 @@
   "devDependencies": {
     "async": ">=2.6.4",
     "mocha": "^8.4.0",
+    "nanoid": "^3.1.31",
     "nyc": "14.1.1",
     "steamcommunity": "^3.44.1",
     "steamid": ">=1.1.3"
