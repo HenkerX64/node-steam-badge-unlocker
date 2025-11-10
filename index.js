@@ -129,7 +129,7 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 				}
 			}).catch(() => null);
 			if (html) {
-				const tokenMatches = html.match(/webapi_token&quot;:&quot;(\w{32})&quot;/);
+				const tokenMatches = html.match(/webapi_token&quot;:&quot;([^"&]+)/);
 				if (tokenMatches && tokenMatches.length > 1) {
 					this._apiToken = tokenMatches[1];
 					resolve(this._apiToken);
