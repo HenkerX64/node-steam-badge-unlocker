@@ -72,7 +72,7 @@ module.exports = {
 	broadcastWatchId: null,
 
 	/** @type {string|null} (optional) Community Leader - badge guide */
-	guideFileId: 1423256778,
+	guideFileId: 143430756,
 	steamOverlayUserAgent: 'Mozilla/5.0 (Windows; U; Windows NT 10.0; en-US; Valve Steam GameOverlay/1639697812; ) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36',
 
 	/** @type {number} */
