@@ -1,4 +1,5 @@
 module.exports = SteamBadgeUnlocker;
+module.exports.default = SteamBadgeUnlocker;
 SteamBadgeUnlocker.ECommunityBadgeQuests = require('./resources/ECommunityBadgeQuests');
 SteamBadgeUnlocker.EFileType = require('./resources/EFileType');
 SteamBadgeUnlocker.ESubSection = require('./resources/ESubSection');
