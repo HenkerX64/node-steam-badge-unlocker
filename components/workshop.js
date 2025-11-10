@@ -57,7 +57,7 @@ SteamBadgeUnlocker.prototype._getUgcUploadForm = function (appId = 767, type = '
 				return;
 			}
 
-			const url = html.match(/ action="([^"]+steamcontent[^"]+upload)"/);
+			const url = html.match(/ action="([^"]+(steamcontent|steamserver)[^"]+upload[^"]*)"/);
 			if (!url) {
 				reject(new Error('ERR_MISSING_FORM_ACTION'));
 				return;
