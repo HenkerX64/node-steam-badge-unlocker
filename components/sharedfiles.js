@@ -178,6 +178,14 @@ SteamBadgeUnlocker.prototype.deleteSharedFile = function (fileId, appId = 0, fil
 SteamBadgeUnlocker.prototype.postSharedFileComment = function (steamId, fileId, comment, count = 5) {
 
 	return new Promise((resolve, reject) => {
+		if (!steamId) {
+			reject(new Error('ERR_MISSING_FILE_OWNER_STEAM_ID'));
+			return;
+		}
+		if (!fileId) {
+			reject(new Error('ERR_MISSING_FILE_ID'));
+			return;
+		}
 		this.post({
 			url: getActionUrl({
 				type: 'PublishedFile_Public',

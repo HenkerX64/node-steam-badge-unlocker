@@ -107,12 +107,13 @@ function CCommunityLeader(communityBadge, options) {
 		if (!this.options.masterInstance) {
 			return;
 		}
+		const masterSteamID = this.options.masterInstance.steamID.toString();
 		if (!this.options.friendSteamId) {
-			this.options.friendSteamId = this.options.masterInstance.steamID.toString();
-			if (!this.options.friendsScreenshotFileId) {
-				this.options.friendsScreenshotFileId = await getFirstScreenshotId(this.options.masterInstance).catch(() => null);
-				this.log('-', {friendsScreenshotFileId: this.options.friendsScreenshotFileId});
-			}
+			this.options.friendSteamId = masterSteamID;
+		}
+		if (!this.options.friendsScreenshotFileId && this.options.friendSteamId === masterSteamID) {
+			this.options.friendsScreenshotFileId = await getFirstScreenshotId(this.options.masterInstance).catch(() => null);
+			this.log('-', {friendsScreenshotFileId: this.options.friendsScreenshotFileId});
 		}
 	}
 
