@@ -29,9 +29,11 @@ All values can be overridden when initializing the class.
 
 ```javascript
 const communityLeaderOptions = {
-	friendSteamId: null,
-	forceRemoveFriend: false,
-	forceAddFriend: false,
+	// Enables the "AddFriendToFriendsList" task when true.
+	// Ensures both accounts become friends by initiating a mutual friend request.
+	// When false, the script assumes the existing friendship should be used.
+	forceAddFriend: true,
+	forceRemoveFriend: true,
 	wishlistAppId: 1195460,
 
 // To enable the YouTube linking task, link your YouTube account with Steam first:
@@ -46,6 +48,7 @@ const communityLeaderOptions = {
 // Requirements:
 // - Your YouTube account must have at least one uploaded video (can be "unlisted")
 // - If Steam can list your video for linking, the configuration is valid
+// Note: YouTube access tokens expire periodically and must be refreshed when expired (PostVideo: false).
 	youtubeCookies: {
 		accessToken: null,
 		authAccount: '',
@@ -85,6 +88,11 @@ const badgeUnlocker = new SteamBadgeUnlocker(community);
 const communityLeader = badgeUnlocker.createCommunityLeader(communityLeaderOptions);
 
 await communityLeader.start();
+
+// Optional: perform additional actions here
+// Note: during `finish()`, the master friend will be removed if `forceRemoveFriend: true`.
+// If you plan to trade or complete more tasks, insert your code between start() and finish().
+
 await communityLeader.finish();
 ```
 
@@ -145,7 +153,7 @@ const communityLeader = badgeUnlocker.createCommunityLeader(communityLeaderOptio
 20. View broadcast
 21. View guide in Steam overlay
 22. Play game (_requires [steam-user](https://github.com/DoctorMcKay/node-steam-user)_)
-23. Use emotion in chat
+23. Use emotion in chat (_requires [steam-user](https://github.com/DoctorMcKay/node-steam-user)_)
 
 Disabled (manual or ToS-restricted):
 
