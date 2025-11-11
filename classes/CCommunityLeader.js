@@ -14,7 +14,7 @@ const masterInstanceCache = {
  */
 function getFirstScreenshotId(_community) {
 	return new Promise((resolve) => {
-		const friendSteamId = _community.steamID.toString();
+		const friendSteamId = String(_community.steamID);
 		if (masterInstanceCache.friendSteamId === friendSteamId) {
 			resolve(masterInstanceCache.friendsScreenshotFileId);
 			return;
@@ -107,7 +107,7 @@ function CCommunityLeader(communityBadge, options) {
 		if (!this.options.masterInstance) {
 			return;
 		}
-		const masterSteamID = this.options.masterInstance.steamID.toString();
+		const masterSteamID = String(this.options.masterInstance.steamID);
 		if (!this.options.friendSteamId) {
 			this.options.friendSteamId = masterSteamID;
 		}
@@ -542,7 +542,7 @@ CCommunityLeader.prototype.SetupCommunityRealName = function () {
 	return new Promise((resolve) => {
 		const self = this;
 		self._community.editProfile({realName: self.options.realName}, (e) => {
-			if (!e) {
+			if (e) {
 				resolve(false);
 				return;
 			}
