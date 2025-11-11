@@ -30,7 +30,7 @@ function SteamCommunityMock(options = {}) {
 	this.postProfileStatus = (statusText, options, callback) => callback(createResult(statusText), 1000);
 	this.postUserComment = (steamId, message, callback) => callback(createResult(message), '1000');
 	this.deleteUserComment = (steamId, commentId, callback) => callback(createResult(steamId, 'Failed to delete comment'));
-	this.editProfile = (settings, callback) => callback(createResult(settings.realName));
+	this.editProfile = (settings, callback) => callback(createResult(settings.realName, 'Error', 'John'));
 	this.getWebApiKey = (domain, callback) => callback(null, 'test');
 
 	this.chatLogon = () => null;
