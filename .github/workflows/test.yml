@@ -18,17 +18,17 @@ jobs:
       max-parallel: 1
       matrix:
         node:
-          - 10  # EOL: 2021-04
-          - 16  # EOL: 2024-04
+          - 16  # EOL: 2023-08
+          - 22  # EOL: 2025-10
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
           node-version: '${{ matrix.node }}'
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: 'Cache node_modules'
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-v${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
