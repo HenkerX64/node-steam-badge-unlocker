@@ -148,6 +148,7 @@ const communityLeader = badgeUnlocker.createCommunityLeader(communityLeaderOptio
 23. Use emotion in chat
 
 Disabled (manual or ToS-restricted):
+
 24. Trade (**disabled**, _requires [steam-tradeoffer-manager](https://github.com/DoctorMcKay/node-steam-tradeoffer-manager)_)
 25. Buy or Sell item on Community Market (**disabled**, _see Steam ToS_)
 26. Add 2FA to account (**disabled**)
