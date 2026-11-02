@@ -94,6 +94,15 @@ SteamBadgeUnlocker.prototype._getUgcUploadForm = function (appId = 767, type = '
 }
 
 /**
+ * @param {fs.ReadStream|null} file
+ */
+function closeFile(file) {
+	if (file && typeof file.destroy === 'function') {
+		file.destroy();
+	}
+}
+
+/**
  * @param {number} appId
  * @param {string} title
  * @param {string} description
@@ -103,7 +112,21 @@ SteamBadgeUnlocker.prototype._getUgcUploadForm = function (appId = 767, type = '
 SteamBadgeUnlocker.prototype.uploadScreenshot = function (appId, title, description, file) {
 	return new Promise((resolve, reject) => {
 		const _badgeUnlocker = this;
+		const fail = (error) => {
+			closeFile(file);
+			reject(error);
+		};
+		let fileError = null;
+		if (file && typeof file.once === 'function') {
+			file.once('error', (error) => {
+				fileError = error;
+				reject(error);
+			});
+		}
 		this._getUgcUploadForm(appId, 'screenshots').then(form => {
+			if (fileError) {
+				return;
+			}
 			const formData = {
 				...form.params,
 				title,
@@ -129,9 +152,9 @@ SteamBadgeUnlocker.prototype.uploadScreenshot = function (appId, title, descript
 					});
 					return;
 				}
-				reject(createError(EErrorCode.SCREENSHOT_UPLOAD_FAILED));
-			}, (e) => reject(e));
-		}, (e) => reject(e));
+				fail(createError(EErrorCode.SCREENSHOT_UPLOAD_FAILED));
+			}, fail);
+		}, fail);
 	});
 }
 

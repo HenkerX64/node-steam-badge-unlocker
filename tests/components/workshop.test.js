@@ -25,3 +25,21 @@ it('uploadScreenshot()', async () => {
 	assert.ok(result.success);
 	assert.strictEqual(result.id, '1000000');
 });
+it('uploadScreenshot() - unreadable file rejects instead of crashing the process', async () => {
+	const community = new SteamCommunityMock();
+	const httpRequest = community.httpRequest;
+	community.httpRequest = (params, callback, source) => setTimeout(() => httpRequest(params, callback, source), 50);
+	const unlocker = new SteamBadgeUnlocker(community);
+	const file = require('fs').createReadStream(__dirname + '/../fixtures/missing-screenshot.png');
+	const result = await unlocker.uploadScreenshot(767, 'title', '', file).then(() => 'resolved', error => error.code);
+	assert.strictEqual(result, 'ENOENT');
+});
+it('uploadScreenshot() - closes the file when the upload fails', async () => {
+	const community = new SteamCommunityMock();
+	community.setResultStack([[Object.assign(new Error('HTTP error 429'), {code: 429}), {statusCode: 429}, null]]);
+	const unlocker = new SteamBadgeUnlocker(community);
+	const file = require('fs').createReadStream(__dirname + '/../../resources/empty.png');
+	const result = await unlocker.uploadScreenshot(767, 'title', '', file).then(() => 'resolved', error => error.code);
+	assert.strictEqual(result, 429);
+	assert.strictEqual(file.destroyed, true);
+});
