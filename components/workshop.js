@@ -1,4 +1,6 @@
 const SteamBadgeUnlocker = require('../index');
+const EErrorCode = require('../resources/EErrorCode');
+const {createError} = require('./helpers');
 
 /**
  * @param {{qs?: AllContentHomeQuery, headers?: module:http.IncomingHttpHeaders}} params
@@ -46,20 +48,20 @@ SteamBadgeUnlocker.prototype._getUgcUploadForm = function (appId = 767, type = '
 		}).then(html => {
 			const token = html.match(/name="token" value="([^"]+)"/);
 			if (!token) {
-				reject(new Error('ERR_MISSING_TOKEN_FIELD'));
+				reject(createError(EErrorCode.MISSING_TOKEN_FIELD));
 				return;
 			}
 
 			const wg = html.match(/name="wg" value="([^"]+)"/);
 			const wgHmac = html.match(/name="wg_hmac" value="([^"]+)"/);
 			if (!wg || !wgHmac) {
-				reject(new Error('ERR_MISSING_WG_FIELD'));
+				reject(createError(EErrorCode.MISSING_WG_FIELD));
 				return;
 			}
 
 			const url = html.match(/ action="([^"]+(steamcontent|steamserver)[^"]+upload[^"]*)"/);
 			if (!url) {
-				reject(new Error('ERR_MISSING_FORM_ACTION'));
+				reject(createError(EErrorCode.MISSING_FORM_ACTION));
 				return;
 			}
 
@@ -127,7 +129,7 @@ SteamBadgeUnlocker.prototype.uploadScreenshot = function (appId, title, descript
 					});
 					return;
 				}
-				reject(new Error('ERR_SCREENSHOT_UPLOAD_FAILED'));
+				reject(createError(EErrorCode.SCREENSHOT_UPLOAD_FAILED));
 			}, (e) => reject(e));
 		}, (e) => reject(e));
 	});

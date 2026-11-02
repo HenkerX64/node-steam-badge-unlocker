@@ -1,7 +1,8 @@
 const SteamBadgeUnlocker = require('../index');
 
 const SteamCommunityHelpers = require('steamcommunity/components/helpers');
-const {getActionUrl} = require('./helpers');
+const {getActionUrl, createError} = require('./helpers');
+const EErrorCode = require('../resources/EErrorCode');
 
 
 /**
@@ -160,7 +161,7 @@ SteamBadgeUnlocker.prototype.deleteSharedFile = function (fileId, appId = 0, fil
 			}
 		}).then((body) => {
 			if (/profile_fatalerror_message/.test(body)) {
-				reject(new Error('profile_fatalerror_message'));
+				reject(createError(EErrorCode.REJECTED_SHARED_FILE_DELETE));
 				return;
 			}
 			resolve(true);
@@ -179,11 +180,11 @@ SteamBadgeUnlocker.prototype.postSharedFileComment = function (steamId, fileId, 
 
 	return new Promise((resolve, reject) => {
 		if (!steamId) {
-			reject(new Error('ERR_MISSING_FILE_OWNER_STEAM_ID'));
+			reject(createError(EErrorCode.MISSING_FILE_OWNER_STEAM_ID));
 			return;
 		}
 		if (!fileId) {
-			reject(new Error('ERR_MISSING_FILE_ID'));
+			reject(createError(EErrorCode.MISSING_FILE_ID));
 			return;
 		}
 		this.post({
@@ -213,14 +214,14 @@ SteamBadgeUnlocker.prototype.postSharedFileComment = function (steamId, fileId, 
 					resolve(commentAttrId[1]);
 					return;
 				}
-				reject(new Error('ERR_ON_SUCCESS_ID_NOT_FOUND'));
+				reject(createError(EErrorCode.ON_SUCCESS_ID_NOT_FOUND));
 				return;
 			}
 			if (response && response.error) {
-				reject(new Error(response.error));
+				reject(createError(EErrorCode.REJECTED_COMMENT_POST, response.error));
 				return;
 			}
-			reject(new Error('Unknown error'));
+			reject(createError(EErrorCode.UNKNOWN_COMMENT_POST));
 		}, (e) => reject(e));
 	});
 }
@@ -261,11 +262,11 @@ SteamBadgeUnlocker.prototype.deleteSharedFileComment = function (steamId, fileId
 			if (response.success && !response.comments_html.includes(commentId)) {
 				resolve(true);
 			} else if (response.error) {
-				reject(new Error(response.error));
+				reject(createError(EErrorCode.REJECTED_COMMENT_DELETE, response.error));
 			} else if (body.comments_html.includes(commentId)) {
-				reject(new Error('Failed to delete comment'));
+				reject(createError(EErrorCode.REJECTED_COMMENT_DELETE));
 			} else {
-				reject(new Error('Unknown error'));
+				reject(createError(EErrorCode.UNKNOWN_COMMENT_DELETE));
 			}
 		}, (e) => reject(e));
 	});

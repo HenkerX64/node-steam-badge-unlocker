@@ -3,6 +3,8 @@ module.exports.default = SteamBadgeUnlocker;
 SteamBadgeUnlocker.ECommunityBadgeQuests = require('./resources/ECommunityBadgeQuests');
 SteamBadgeUnlocker.EFileType = require('./resources/EFileType');
 SteamBadgeUnlocker.ESubSection = require('./resources/ESubSection');
+SteamBadgeUnlocker.EErrorCode = require('./resources/EErrorCode');
+const {createError} = require('./components/helpers');
 
 /**
  * @param {SteamCommunity} SteamCommunity
@@ -13,7 +15,7 @@ SteamBadgeUnlocker.ESubSection = require('./resources/ESubSection');
 function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 	// !SteamCommunity instanceof community
 	if (typeof SteamCommunity !== 'object' || typeof SteamCommunity.getSessionID !== 'function') {
-		throw new Error('SteamCommunity instance required');
+		throw createError(SteamBadgeUnlocker.EErrorCode.MISSING_COMMUNITY);
 	}
 
 	options = options || {};
@@ -137,7 +139,7 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 					return;
 				}
 			}
-			reject(new Error('Fetch webapi token failed'));
+			reject(createError(SteamBadgeUnlocker.EErrorCode.NOT_FOUND_WEBAPI_TOKEN));
 		});
 	}
 }

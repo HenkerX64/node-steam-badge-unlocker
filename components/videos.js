@@ -1,4 +1,6 @@
 const SteamBadgeUnlocker = require('../index');
+const EErrorCode = require('../resources/EErrorCode');
+const {createError} = require('./helpers');
 
 
 /** @typedef {{fileId: string, youtubeId: string}} ProfileVideos */
@@ -120,7 +122,7 @@ SteamBadgeUnlocker.prototype.postYoutubeVideo = function (youtubeIds, appId = 0,
 				return;
 			}
 			if (html.match('Access your YouTube videos')) {
-				reject(new Error('INVALID_YOUTUBE_ACCESS_TOKEN'));
+				reject(createError(EErrorCode.INVALID_YOUTUBE_ACCESS_TOKEN));
 				return;
 			}
 
@@ -137,7 +139,7 @@ SteamBadgeUnlocker.prototype.postYoutubeVideo = function (youtubeIds, appId = 0,
  */
 SteamBadgeUnlocker.prototype.setYoutubeCookies = function (cookies) {
 	if (!cookies || !cookies.accessToken || !cookies.authAccount || !cookies.refreshToken) {
-		throw new Error('Invalid youtube cookies parameter! Required: accessToken');
+		throw createError(EErrorCode.MISSING_YOUTUBE_ACCESS_TOKEN);
 	}
 	const cookieStrings = [
 		'youtube_accesstoken=' + decodeURI(cookies.accessToken) + ';path=/',

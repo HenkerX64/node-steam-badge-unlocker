@@ -19,6 +19,10 @@ describe('discussions.js', () => {
 	require('./components/discussions.test');
 });
 
+describe('errors', () => {
+	require('./errors.test');
+});
+
 describe('helpers.js', () => {
 	require('./components/helpers.test');
 });

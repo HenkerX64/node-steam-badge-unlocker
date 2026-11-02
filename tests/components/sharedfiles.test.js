@@ -52,3 +52,9 @@ it('deleteSharedFileComment()', async () => {
 });
 
 
+it('postSharedFileComment() - Steam error text as message', async () => {
+	_badgeUnlocker.getCommunity().setResultStack([[null, null, {success: false, error: 'You\'ve been posting too frequently'}]]);
+	const error = await _badgeUnlocker.postSharedFileComment('76000000000000001', '1000', 'test').catch(e => e);
+	assert.strictEqual(error.code, 'REJECTED_COMMENT_POST');
+	assert.strictEqual(error.message, 'You\'ve been posting too frequently');
+});

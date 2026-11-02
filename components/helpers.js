@@ -6,6 +6,16 @@ exports.delay = seconds => {
 	return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
+/** @typedef {keyof typeof import('../resources/EErrorCode')} ErrorCode */
+
+/**
+ * @template {ErrorCode} T
+ * @param {T} code
+ * @param {string} [message]
+ * @returns {Error & {code: T}}
+ */
+exports.createError = (code, message = code) => Object.assign(new Error(message), {code});
+
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/global.js
  * @param {CommentActionParams} params
