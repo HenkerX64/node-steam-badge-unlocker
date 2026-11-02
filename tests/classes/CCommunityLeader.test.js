@@ -138,6 +138,7 @@ it('UseEmoticonInChat() - steam-user send failure does not hang', async () => {
 	steamUser.chat.sendFriendMessage = () => Promise.reject(new Error('NotFriends'));
 	const chatLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({steamUser, friendSteamId: '76000000000000001'});
 	assert.strictEqual(await settleOrTimeout(chatLeader.UseEmoticonInChat()), false);
+	assert.strictEqual(chatLeader.getLastError().message, 'NotFriends');
 });
 
 it('friend quests - resolve without a friend', async () => {
@@ -167,34 +168,26 @@ it('steam-user methods - non-promise return values do not hang', async () => {
 });
 
 it('start() - a throwing quest is logged and the run continues', async () => {
-	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const community = new SteamCommunityMock();
+	community.joinGroup = () => {
+		throw new Error('boom');
+	};
+	const runUnlocker = new SteamBadgeUnlocker(community);
 	runUnlocker.getCommunityBadgeProgress = async () => ({
 		response: {quests: [101, 108].map(questid => ({questid, completed: false}))},
 	});
 	const logs = [];
-	const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
-	runLeader.JoinGroup = async () => {
-		throw new Error('boom');
-	};
-	let wishlistCalled = false;
-	runLeader.AddItemToWishlist = async () => {
-		wishlistCalled = true;
-		return true;
-	};
-	await runLeader.start();
-	assert.ok(wishlistCalled, 'AddItemToWishlist after the failing quest');
+	await runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])}).start();
 	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['JoinGroup', 'boom'], ['AddItemToWishlist', 'OK']]);
 });
 
 it('start() - logs the code of a failed quest instead of its message', async () => {
-	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const community = new SteamCommunityMock();
+	community.joinGroup = (groupId, callback) => callback(Object.assign(new Error('HTTP error 429'), {code: 429}));
+	const runUnlocker = new SteamBadgeUnlocker(community);
 	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [{questid: 101, completed: false}]}});
 	const logs = [];
-	const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
-	runLeader.JoinGroup = async () => {
-		throw Object.assign(new Error('HTTP error 429'), {code: 429});
-	};
-	await runLeader.start();
+	await runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])}).start();
 	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['JoinGroup', 429]]);
 });
 
@@ -253,6 +246,37 @@ it('quests - synchronous errors settle instead of hanging', async () => {
 	}
 });
 
+it('start() - logs the HTTP status of a failed quest request', async () => {
+	const community = new SteamCommunityMock();
+	const runUnlocker = new SteamBadgeUnlocker(community);
+	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [{questid: 108, completed: false}]}});
+	community.setResultStack([[Object.assign(new Error('HTTP error 429'), {code: 429}), {statusCode: 429}, null]]);
+	const logs = [];
+	await runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])}).start();
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['AddItemToWishlist', 429]]);
+});
+
+it('start() - a quest rejecting without an Error still lets the run continue', async () => {
+	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [125, 108].map(questid => ({questid, completed: false}))}});
+	const steamUser = new SteamUserMock();
+	steamUser.chat.sendFriendMessage = () => Promise.reject(undefined);
+	const logs = [];
+	const runLeader = runUnlocker.createCommunityLeader({friendSteamId: '76000000000000001', steamUser, log: (key, value) => logs.push([key, value])});
+	await settleOrTimeout(runLeader.start(), 2000);
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['AddItemToWishlist', 'OK'], ['UseEmoticonInChat', false]]);
+});
+
+it('quests - resolve false and keep the request error for getLastError()', async () => {
+	const community = new SteamCommunityMock();
+	const questLeader = new SteamBadgeUnlocker(community).createCommunityLeader({});
+	community.setResultStack([[Object.assign(new Error('HTTP error 429'), {code: 429}), {statusCode: 429}, null]]);
+	assert.strictEqual(await questLeader.AddItemToWishlist(), false);
+	assert.strictEqual(questLeader.getLastError().code, 429);
+	assert.strictEqual(await questLeader.SearchInDiscussions(), true);
+	assert.strictEqual(questLeader.getLastError(), null);
+});
+
 it('PostVideo() - does not post without the list of videos shared before', async () => {
 	const videoUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
 	videoUnlocker.getProfileVideos = () => Promise.reject(Object.assign(new Error('HTTP error 429'), {code: 429}));
@@ -290,4 +314,55 @@ it('start() - a community without getSteamUser still runs the quests', async () 
 	const logs = [];
 	await settleOrTimeout(runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])}).start(), 2000);
 	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['AddItemToWishlist', 'OK']]);
+});
+
+it('start() - a quest replaced on the instance is guarded like the prototype quests', async () => {
+	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [101, 108].map(questid => ({questid, completed: false}))}});
+	const logs = [];
+	const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
+	runLeader.JoinGroup = async () => {
+		throw new Error('custom join failed');
+	};
+	await settleOrTimeout(runLeader.start(), 2000);
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['JoinGroup', 'custom join failed'], ['AddItemToWishlist', 'OK']]);
+});
+
+it('start() - a quest replaced on the instance does not report the error of the quest before', async () => {
+	const community = new SteamCommunityMock();
+	const runUnlocker = new SteamBadgeUnlocker(community);
+	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [108, 123].map(questid => ({questid, completed: false}))}});
+	community.setResultStack([[Object.assign(new Error('HTTP error 429'), {code: 429}), {statusCode: 429}, null]]);
+	const logs = [];
+	const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
+	runLeader.SearchInDiscussions = async () => false;
+	await runLeader.start();
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['AddItemToWishlist', 429], ['SearchInDiscussions', false]]);
+});
+
+it('quests - a missing friend, steamUser or YouTube token is a skip with its code', async () => {
+	const skipLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({youtubeCookies: {accessToken: null}});
+	const skips = [];
+	for (const quest of ['AddFriendToFriendsList', 'PostCommentOnFriendsPage', 'PostCommentOnFriendsScreenshot', 'UseEmoticonInChat', 'PlayGame', 'PostVideo']) {
+		skips.push([quest, await skipLeader[quest](), skipLeader.getLastError().code]);
+	}
+	assert.deepStrictEqual(skips, [
+		['AddFriendToFriendsList', false, 'SKIP_MISSING_FRIEND'],
+		['PostCommentOnFriendsPage', false, 'SKIP_MISSING_FRIEND'],
+		['PostCommentOnFriendsScreenshot', false, 'SKIP_MISSING_FRIEND'],
+		['UseEmoticonInChat', false, 'SKIP_MISSING_FRIEND'],
+		['PlayGame', false, 'SKIP_MISSING_STEAM_USER'],
+		['PostVideo', false, 'SKIP_MISSING_YOUTUBE_ACCESS_TOKEN'],
+	]);
+	const chatLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({friendSteamId: '76000000000000001'});
+	assert.strictEqual(await chatLeader.UseEmoticonInChat(), false);
+	assert.strictEqual(chatLeader.getLastError().code, 'SKIP_MISSING_STEAM_USER');
+});
+
+it('getLastError() - a rejection without an Error leaves null', async () => {
+	const steamUser = new SteamUserMock();
+	steamUser.chat.sendFriendMessage = () => Promise.reject(undefined);
+	const chatLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({friendSteamId: '76000000000000001', steamUser});
+	assert.strictEqual(await chatLeader.UseEmoticonInChat(), false);
+	assert.strictEqual(chatLeader.getLastError(), null);
 });

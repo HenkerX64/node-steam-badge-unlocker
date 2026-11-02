@@ -1,6 +1,7 @@
 const SteamBadgeUnlocker = require('../index.js');
 const DefaultOptions = require('../resources/OCommunityLeaderDefault');
-const {delay} = require('../components/helpers');
+const {delay, createError} = require('../components/helpers');
+const EErrorCode = require('../resources/EErrorCode');
 
 const fs = require('fs');
 const {promisify} = require('util');
@@ -49,6 +50,51 @@ async function getFirstScreenshotId(_community, language) {
 		masterInstanceCache.friendsScreenshotFileId = friendsScreenshotFileId;
 	}
 	return friendsScreenshotFileId;
+}
+
+/**
+ * @param {CCommunityLeader} leader
+ * @param {Error|null} error
+ */
+function setLastError(leader, error) {
+	leader._lastError = error || null;
+}
+
+/**
+ * @template {CCommunityLeader} T
+ * @param {function(this: T): (boolean|null|Promise<boolean|null>)} quest
+ * @returns {function(this: T): Promise<boolean|null>}
+ */
+function withLastError(quest) {
+	return async function () {
+		setLastError(this, null);
+		try {
+			return await quest.call(this);
+		} catch (error) {
+			setLastError(this, error);
+			return false;
+		}
+	};
+}
+
+/**
+ * @param {CCommunityLeader} leader
+ * @param {keyof typeof import('../resources/EErrorCode')} code
+ * @returns {false}
+ */
+function skipQuest(leader, code) {
+	setLastError(leader, createError(code));
+	return false;
+}
+
+/**
+ * @param {CCommunityLeader} leader
+ * @param {string} questName
+ * @returns {function(this: CCommunityLeader): Promise<boolean|null>}
+ */
+function guardOverriddenQuest(leader, questName) {
+	const quest = leader[questName];
+	return quest === CCommunityLeader.prototype[questName] ? quest : withLastError(quest);
 }
 
 /**
@@ -113,6 +159,8 @@ function CCommunityLeader(communityBadge, options) {
 	this.isLimitedAccount = false;
 	this.vacBanned = false;
 	this.tradeBanState = false;
+	/** @type {Error|null} */
+	this._lastError = null;
 
 	/**
 	 * @param {string} key
@@ -159,6 +207,7 @@ function CCommunityLeader(communityBadge, options) {
 	}
 
 	this.start = async function () {
+		setLastError(this, null);
 		await this.init();
 		const openQuests = (await getOpenQuests()).map(quest => ({
 			id: quest.questid,
@@ -180,15 +229,8 @@ function CCommunityLeader(communityBadge, options) {
 			}
 		}
 		const runQuest = async (questName) => {
-			let result;
-			let questError = null;
-			try {
-				result = await this[questName]();
-			} catch (error) {
-				questError = error;
-				result = false;
-			}
-			this.log(questName, questLogValue(result, questError));
+			const result = await guardOverriddenQuest(this, questName).call(this);
+			this.log(questName, questLogValue(result, this.getLastError()));
 		};
 		const executeAll = async (questsNames) => {
 			let i;
@@ -284,13 +326,14 @@ function CCommunityLeader(communityBadge, options) {
  */
 CCommunityLeader.prototype.AddFriendToFriendsList = async function () {
 	if (!this.options.friendSteamId) {
-		return false;
+		return skipQuest(this, EErrorCode.SKIP_MISSING_FRIEND);
 	}
 	if (this.options.masterInstance) {
 		await callbackCall(this.options.masterInstance, 'addFriend', this._badgeUnlocker.getSteamId()).catch(() => null);
 		await delay(1);
 	}
-	return callbackCall(this._community, 'addFriend', this.options.friendSteamId).then(() => true, () => false);
+	await callbackCall(this._community, 'addFriend', this.options.friendSteamId);
+	return true;
 }
 
 /**
@@ -299,7 +342,7 @@ CCommunityLeader.prototype.AddFriendToFriendsList = async function () {
  */
 CCommunityLeader.prototype.AddItemToWishlist = async function () {
 	const appId = this.options.wishlistAppId;
-	const response = await this._badgeUnlocker.addToWishlist(appId).catch(() => null);
+	const response = await this._badgeUnlocker.addToWishlist(appId);
 	if (!response || !response.success) {
 		return false;
 	}
@@ -316,13 +359,13 @@ CCommunityLeader.prototype.CraftGameBadge = async function () {
 	this._rgDroppedItems = [];
 	let appId = this.options.craftGameBadgeAppId;
 	if (!appId) {
-		const apps = await this._badgeUnlocker.getAppIdsReadyForCrafting().catch(() => []);
+		const apps = await this._badgeUnlocker.getAppIdsReadyForCrafting();
 		if (apps.length === 0) {
 			return false;
 		}
 		appId = apps[0];
 	}
-	const result = await this._badgeUnlocker.craftBadge(appId).catch(() => null);
+	const result = await this._badgeUnlocker.craftBadge(appId);
 	if (result && result.success && typeof result.rgDroppedItems !== 'undefined') {
 		this._rgDroppedItems = result.rgDroppedItems;
 	}
@@ -334,7 +377,7 @@ CCommunityLeader.prototype.CraftGameBadge = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.FeatureBadgeOnProfile = function () {
-	return this._badgeUnlocker.setFavoriteBadge(this.options.featureBadgeId).catch(() => false);
+	return this._badgeUnlocker.setFavoriteBadge(this.options.featureBadgeId);
 }
 
 /**
@@ -342,9 +385,9 @@ CCommunityLeader.prototype.FeatureBadgeOnProfile = function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.JoinGroup = async function () {
-	const joined = await callbackCall(this._community, 'joinGroup', this.options.joinGroupId).then(() => true, () => false);
-	if (!joined || !this.options.leaveGroupAutomatically) {
-		return joined;
+	await callbackCall(this._community, 'joinGroup', this.options.joinGroupId);
+	if (!this.options.leaveGroupAutomatically) {
+		return true;
 	}
 	await callbackCall(this._community, 'leaveGroup', this.options.joinGroupId).catch(() => null);
 	return true;
@@ -356,15 +399,11 @@ CCommunityLeader.prototype.JoinGroup = async function () {
  */
 CCommunityLeader.prototype.PostCommentOnFriendsPage = async function () {
 	if (!this.options.friendSteamId) {
-		return false;
+		return skipQuest(this, EErrorCode.SKIP_MISSING_FRIEND);
 	}
-	const posted = await callbackCall(this._community, 'postUserComment', this.options.friendSteamId, this.options.friendsPageComment)
-		.then(commentId => ({commentId}), () => null);
-	if (!posted) {
-		return false;
-	}
+	const commentId = await callbackCall(this._community, 'postUserComment', this.options.friendSteamId, this.options.friendsPageComment);
 	// cleanup
-	await callbackCall(this._community, 'deleteUserComment', this.options.friendSteamId, posted.commentId).catch(() => null);
+	await callbackCall(this._community, 'deleteUserComment', this.options.friendSteamId, commentId).catch(() => null);
 	return true;
 }
 
@@ -373,7 +412,10 @@ CCommunityLeader.prototype.PostCommentOnFriendsPage = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.PostCommentOnFriendsScreenshot = async function () {
-	const commentId = await this._badgeUnlocker.postSharedFileComment(this.options.friendSteamId, this.options.friendsScreenshotFileId, this.options.friendsScreenshotComment, 5).catch(() => null);
+	if (!this.options.friendSteamId) {
+		return skipQuest(this, EErrorCode.SKIP_MISSING_FRIEND);
+	}
+	const commentId = await this._badgeUnlocker.postSharedFileComment(this.options.friendSteamId, this.options.friendsScreenshotFileId, this.options.friendsScreenshotComment, 5);
 	if (!commentId) {
 		return false;
 	}
@@ -388,7 +430,7 @@ CCommunityLeader.prototype.PostCommentOnFriendsScreenshot = async function () {
  */
 CCommunityLeader.prototype.PostScreenshot = async function () {
 	const file = fs.createReadStream(this.options.screenshotPath);
-	const response = await this._badgeUnlocker.uploadScreenshot(this.options.screenshotAppId, this.options.screenshotTitle, this.options.screenshotDescription, file).catch(() => null);
+	const response = await this._badgeUnlocker.uploadScreenshot(this.options.screenshotAppId, this.options.screenshotTitle, this.options.screenshotDescription, file);
 	if (!response) {
 		return false;
 	}
@@ -401,12 +443,8 @@ CCommunityLeader.prototype.PostScreenshot = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.PostStatusToFriends = async function () {
-	const posted = await callbackCall(this._community, 'postProfileStatus', this.options.statusText, {appID: this.options.statusAppId})
-		.then(postId => ({postId}), () => null);
-	if (!posted) {
-		return false;
-	}
-	await callbackCall(this._community, 'deleteProfileStatus', posted.postId).catch(() => null);
+	const postId = await callbackCall(this._community, 'postProfileStatus', this.options.statusText, {appID: this.options.statusAppId});
+	await callbackCall(this._community, 'deleteProfileStatus', postId).catch(() => null);
 	return true;
 }
 
@@ -416,22 +454,18 @@ CCommunityLeader.prototype.PostStatusToFriends = async function () {
  */
 CCommunityLeader.prototype.PostVideo = async function () {
 	if (!this.options.youtubeCookies || !this.options.youtubeCookies.accessToken) {
-		return false;
+		return skipQuest(this, EErrorCode.SKIP_MISSING_YOUTUBE_ACCESS_TOKEN);
 	}
 	this._badgeUnlocker.setYoutubeCookies(this.options.youtubeCookies);
 	if (!this.options.youtubeId) {
-		const videos = await this._badgeUnlocker.fetchYoutubeVideos().catch(() => []);
+		const videos = await this._badgeUnlocker.fetchYoutubeVideos();
 		if (videos.length === 0) {
 			return false;
 		}
 		this.options.youtubeId = videos[0].youtubeId;
 	}
-	const fileIdsBefore = await this._badgeUnlocker.getProfileVideos()
-		.then(videos => videos.map(video => video.fileId), () => null);
-	if (!fileIdsBefore) {
-		return false;
-	}
-	const postedVideos = await this._badgeUnlocker.postYoutubeVideo(this.options.youtubeId).catch(() => 0);
+	const fileIdsBefore = (await this._badgeUnlocker.getProfileVideos()).map(video => video.fileId);
+	const postedVideos = await this._badgeUnlocker.postYoutubeVideo(this.options.youtubeId);
 	if (postedVideos <= 0) {
 		return false;
 	}
@@ -473,7 +507,7 @@ CCommunityLeader.prototype.RateUpContentInActivityFeed = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.RateWorkshopItem = function () {
-	return this._badgeUnlocker.voteSharedFile(this.options.workshopFileId).catch(() => false);
+	return this._badgeUnlocker.voteSharedFile(this.options.workshopFileId);
 }
 
 /**
@@ -481,7 +515,7 @@ CCommunityLeader.prototype.RateWorkshopItem = function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.RecommendGame = async function () {
-	const response = await this._badgeUnlocker.addGameRecommendation(this.options.reviewAppId, this.options.reviewText).catch(() => null);
+	const response = await this._badgeUnlocker.addGameRecommendation(this.options.reviewAppId, this.options.reviewText);
 	if (!response || !response.success) {
 		return false;
 	}
@@ -494,7 +528,7 @@ CCommunityLeader.prototype.RecommendGame = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.SearchInDiscussions = async function () {
-	const html = await this._badgeUnlocker.discussionsSearch(this.options.discussionsKeyword).catch(() => null);
+	const html = await this._badgeUnlocker.discussionsSearch(this.options.discussionsKeyword);
 	return !!html;
 }
 
@@ -507,14 +541,14 @@ CCommunityLeader.prototype.SetProfileBackground = async function () {
 	if (item && item.economy_hover_data) {
 		const idMatches = item.economy_hover_data.match(/^753\/\d\/(\d+)\/\d+/);
 		if (idMatches && idMatches.length > 1) {
-			const result = await this._badgeUnlocker.setProfileBackground(idMatches[1]).catch(() => null);
+			const result = await this._badgeUnlocker.setProfileBackground(idMatches[1]);
 			return !!result;
 		}
 	}
 
-	const items = await this._badgeUnlocker.getOwnedProfileItems().catch(() => null);
+	const items = await this._badgeUnlocker.getOwnedProfileItems();
 	if (items && items.response.profile_backgrounds && items.response.profile_backgrounds.length > 0) {
-		const result = await this._badgeUnlocker.setProfileBackground(items.response.profile_backgrounds[0].communityitemid).catch(() => null);
+		const result = await this._badgeUnlocker.setProfileBackground(items.response.profile_backgrounds[0].communityitemid);
 		return !!result;
 	}
 	return false;
@@ -525,7 +559,7 @@ CCommunityLeader.prototype.SetProfileBackground = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.SetupCommunityAvatar = function () {
-	return this._badgeUnlocker.selectAvatar(this.options.avatarAppId, this.options.avatarIndex).catch(() => false);
+	return this._badgeUnlocker.selectAvatar(this.options.avatarAppId, this.options.avatarIndex);
 }
 
 /**
@@ -533,9 +567,9 @@ CCommunityLeader.prototype.SetupCommunityAvatar = function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.SetupCommunityRealName = async function () {
-	const saved = await callbackCall(this._community, 'editProfile', {realName: this.options.realName}).then(() => true, () => false);
-	if (!saved || !this.options.resetRealName) {
-		return saved;
+	await callbackCall(this._community, 'editProfile', {realName: this.options.realName});
+	if (!this.options.resetRealName) {
+		return true;
 	}
 	await callbackCall(this._community, 'editProfile', {realName: ''}).catch(() => null);
 	return true;
@@ -546,7 +580,7 @@ CCommunityLeader.prototype.SetupCommunityRealName = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.SubscribeToWorkshopItem = function () {
-	return this._badgeUnlocker.subscribeToSharedFile(this.options.workshopFileId, this.options.workshopAppId).catch(() => false);
+	return this._badgeUnlocker.subscribeToSharedFile(this.options.workshopFileId, this.options.workshopAppId);
 }
 
 /**
@@ -563,7 +597,8 @@ CCommunityLeader.prototype.Trade = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.UseDiscoveryQueue = async function () {
-	return this._badgeUnlocker.finishDiscoveryQueue().then(() => true, () => false);
+	await this._badgeUnlocker.finishDiscoveryQueue();
+	return true;
 }
 
 /**
@@ -574,13 +609,13 @@ CCommunityLeader.prototype.ViewBroadcast = async function () {
 	let broadcastWatchId = this.options.broadcastWatchId;
 	if (!broadcastWatchId) {
 		/** @type {Array<BroadcastLink>} */
-		const links = await this._badgeUnlocker.getBroadcastTrendLinks().catch(() => []);
+		const links = await this._badgeUnlocker.getBroadcastTrendLinks();
 		if (links.length === 0) {
 			return false;
 		}
 		broadcastWatchId = links[0].watchId;
 	}
-	const response = await this._badgeUnlocker.getBroadcastManifest(broadcastWatchId).catch(() => null);
+	const response = await this._badgeUnlocker.getBroadcastManifest(broadcastWatchId);
 	return !!(response && response.success === 'ready');
 }
 
@@ -592,18 +627,19 @@ CCommunityLeader.prototype.ViewGuideInOverlay = async function () {
 	let guideFileId = this.options.guideFileId;
 	if (!guideFileId) {
 		/** @type {Array<GuideLink>} */
-		const links = await this._badgeUnlocker.getGuidesTrendLinks().catch(() => []);
+		const links = await this._badgeUnlocker.getGuidesTrendLinks();
 		if (links.length === 0) {
 			return false;
 		}
 		guideFileId = links[0].guideId;
 	}
-	return this._badgeUnlocker.getSharedFileDetails(guideFileId, {
+	await this._badgeUnlocker.getSharedFileDetails(guideFileId, {
 		headers: {
 			'User-Agent': this.options.steamOverlayUserAgent,
 			'Referer': 'https://steamcommunity.com/?subsection=guides',
 		},
-	}).then(() => true, () => false);
+	});
+	return true;
 }
 
 // ---- SteamUser required, not possible with browser session
@@ -616,7 +652,7 @@ CCommunityLeader.prototype.ViewGuideInOverlay = async function () {
 CCommunityLeader.prototype.PlayGame = async function () {
 	const steamUser = this.options.steamUser;
 	if (!steamUser) {
-		return false;
+		return skipQuest(this, EErrorCode.SKIP_MISSING_STEAM_USER);
 	}
 	await Promise.resolve(steamUser.requestFreeLicense([this.options.playAppId])).catch(() => null);
 
@@ -631,13 +667,23 @@ CCommunityLeader.prototype.PlayGame = async function () {
  * @returns {Promise<boolean>}
  */
 CCommunityLeader.prototype.UseEmoticonInChat = async function () {
-	if (!this.options.friendSteamId || !this.options.steamUser) {
-		return false;
+	if (!this.options.friendSteamId) {
+		return skipQuest(this, EErrorCode.SKIP_MISSING_FRIEND);
 	}
-	const result = await Promise.resolve(this.options.steamUser.chat.sendFriendMessage(this.options.friendSteamId, this.options.emotionMessageText, {})).catch(() => null);
+	if (!this.options.steamUser) {
+		return skipQuest(this, EErrorCode.SKIP_MISSING_STEAM_USER);
+	}
+	const result = await this.options.steamUser.chat.sendFriendMessage(this.options.friendSteamId, this.options.emotionMessageText, {});
 	return !!result;
 }
 
+
+/**
+ * @returns {Error|null}
+ */
+CCommunityLeader.prototype.getLastError = function () {
+	return this._lastError;
+}
 
 // ---- Manual action required
 
@@ -659,3 +705,9 @@ CCommunityLeader.prototype.AddTwoFactorToAccount = disabledQuest;
 CCommunityLeader.prototype.AddPhoneToAccount = disabledQuest;
 /** (manual) Use the Steam Settings dialog to enable Steam Guard. */
 CCommunityLeader.prototype.SetupSteamGuard = disabledQuest;
+
+Object.keys(SteamBadgeUnlocker.ECommunityBadgeQuests)
+	.filter(questName => typeof SteamBadgeUnlocker.ECommunityBadgeQuests[questName] === 'number')
+	.forEach((questName) => {
+		CCommunityLeader.prototype[questName] = withLastError(CCommunityLeader.prototype[questName]);
+	});
