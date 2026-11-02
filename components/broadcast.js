@@ -28,27 +28,23 @@ SteamBadgeUnlocker.prototype.getBroadcastManifest = function (steamId) {
  * @param {{qs?: AllContentHomeQuery, headers?: module:http.IncomingHttpHeaders}} params
  * @returns {Promise<Array<BroadcastLink>>}
  */
-SteamBadgeUnlocker.prototype.getBroadcastTrendLinks = function (params = {}) {
-	const self = this;
-	return new Promise((resolve, reject) => {
-		self.getAllContentHome('broadcasts', params).then((body) => {
-			/** @type {Array<BroadcastLink>} */
-			const links = [];
-			const pattern = /https?:\/\/(www\.)?steamcommunity\.com\/broadcast\/watch\/(\d+)/;
-			const matches = body.match(new RegExp(pattern, 'g'));
-			if (matches) {
-				for (let link of matches) {
-					const match = link.match(pattern);
-					links.push({
-						url: match[0],
-						watchId: match[2],
-					});
-				}
-			}
+SteamBadgeUnlocker.prototype.getBroadcastTrendLinks = async function (params = {}) {
+	const body = await this.getAllContentHome('broadcasts', params);
+	/** @type {Array<BroadcastLink>} */
+	const links = [];
+	const pattern = /https?:\/\/(www\.)?steamcommunity\.com\/broadcast\/watch\/(\d+)/;
+	const matches = body.match(new RegExp(pattern, 'g'));
+	if (matches) {
+		for (let link of matches) {
+			const match = link.match(pattern);
+			links.push({
+				url: match[0],
+				watchId: match[2],
+			});
+		}
+	}
 
-			resolve(links);
-		}, (e) => reject(e));
-	});
+	return links;
 }
 
 /** @typedef {{url: string, watchId: string}} BroadcastLink */

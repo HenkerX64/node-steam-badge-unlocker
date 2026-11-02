@@ -227,6 +227,32 @@ it('PostVideo() - deletes only the video it added', async () => {
 	assert.deepStrictEqual(deleted, ['2']);
 });
 
+
+it('quests - synchronous errors settle instead of hanging', async () => {
+	const community = new SteamCommunityMock();
+	community.addFriend = () => {
+		throw new Error('Unknown SteamID input format');
+	};
+	const steamUser = new SteamUserMock();
+	steamUser.chat.sendFriendMessage = () => {
+		throw new TypeError('message.replace is not a function');
+	};
+	const brokenUnlocker = new SteamBadgeUnlocker(community);
+	brokenUnlocker.setYoutubeCookies = () => {
+		throw new URIError('URI malformed');
+	};
+	brokenUnlocker.getOwnedProfileItems = async () => ({});
+	const brokenLeader = brokenUnlocker.createCommunityLeader({
+		friendSteamId: 'vanity',
+		steamUser,
+		screenshotPath: null,
+		youtubeCookies: {accessToken: 'token'},
+	});
+	for (const quest of ['AddFriendToFriendsList', 'PostScreenshot', 'PostVideo', 'UseEmoticonInChat', 'SetProfileBackground']) {
+		assert.notStrictEqual(await settleOrTimeout(brokenLeader[quest]().catch(() => 'rejected')), 'timeout', quest);
+	}
+});
+
 it('PostVideo() - does not post without the list of videos shared before', async () => {
 	const videoUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
 	videoUnlocker.getProfileVideos = () => Promise.reject(Object.assign(new Error('HTTP error 429'), {code: 429}));
@@ -254,4 +280,14 @@ it('init() - a failed master screenshot request is not cached', async () => {
 	await second.init();
 	assert.strictEqual(first.options.friendsScreenshotFileId, null);
 	assert.strictEqual(second.options.friendsScreenshotFileId, '4200');
+});
+
+it('start() - a community without getSteamUser still runs the quests', async () => {
+	const community = new SteamCommunityMock();
+	delete community.getSteamUser;
+	const runUnlocker = new SteamBadgeUnlocker(community);
+	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [{questid: 108, completed: false}]}});
+	const logs = [];
+	await settleOrTimeout(runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])}).start(), 2000);
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['AddItemToWishlist', 'OK']]);
 });

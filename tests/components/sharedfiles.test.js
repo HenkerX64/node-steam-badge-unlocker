@@ -92,6 +92,14 @@ it('deleteSharedFile() - follows the redirect with GET', async () => {
 	assert.strictEqual(sent[0].followAllRedirects, true);
 	assert.notStrictEqual(sent[0].followOriginalHttpMethod, true);
 });
+it('deleteSharedFileComment() - empty response rejects instead of hanging', async () => {
+	_badgeUnlocker.getCommunity().setResultStack([[null, null, null]]);
+	const result = await Promise.race([
+		_badgeUnlocker.deleteSharedFileComment('76000000000000001', '1000', '1001').then(() => 'resolved', () => 'rejected'),
+		new Promise(resolve => setTimeout(() => resolve('timeout'), 500)),
+	]);
+	assert.strictEqual(result, 'rejected');
+});
 it('postSharedFileComment() - success without comments_html', async () => {
 	_badgeUnlocker.getCommunity().setResultStack([[null, null, {success: true}]]);
 	const result = await Promise.race([

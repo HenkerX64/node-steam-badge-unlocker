@@ -8,34 +8,30 @@ const {getActionUrl} = require("./helpers");
  * @param {number} selectedAvatar
  * @returns {Promise<true>}
  */
-SteamBadgeUnlocker.prototype.selectAvatar = function (appId, selectedAvatar = 0) {
-	return new Promise((resolve, reject) => {
-		this.post({
-			url: 'https://steamcommunity.com/ogg/' + appId + '/selectAvatar',
-			qs: {
-				l: this.getLanguage(),
-			},
-			json: true,
-			form: {
-				sessionid: this.getSessionId(),
-				json: 1,
-				selectedAvatar,
-			},
-			headers: {
-				'Origin': 'https://steamcommunity.com',
-				'Accept': 'application/json',
-				'Referer': `${this.getProfileUrl()}/edit/avatar`,
-				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-			}
-		}).then((body) => {
-			const error = SteamCommunityHelpers.eresultError(body.success);
-			if (error === null) {
-				resolve(true);
-				return;
-			}
-			reject(error);
-		}, (e) => reject(e));
+SteamBadgeUnlocker.prototype.selectAvatar = async function (appId, selectedAvatar = 0) {
+	const body = await this.post({
+		url: 'https://steamcommunity.com/ogg/' + appId + '/selectAvatar',
+		qs: {
+			l: this.getLanguage(),
+		},
+		json: true,
+		form: {
+			sessionid: this.getSessionId(),
+			json: 1,
+			selectedAvatar,
+		},
+		headers: {
+			'Origin': 'https://steamcommunity.com',
+			'Accept': 'application/json',
+			'Referer': `${this.getProfileUrl()}/edit/avatar`,
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
 	});
+	const error = SteamCommunityHelpers.eresultError(body.success);
+	if (error !== null) {
+		throw error;
+	}
+	return true;
 }
 
 /**
@@ -116,45 +112,43 @@ SteamBadgeUnlocker.prototype.getUserNews = function (start = null) {
  * @param {number} minPosts
  * @returns {Promise<Array<CommentActionParams>>}
  */
-SteamBadgeUnlocker.prototype.getLastFriendPosts = function (minPosts = 1) {
-	return new Promise(async (resolve) => {
-		/** @type {Array<CommentActionParams>} */
-		const posts = [];
-		const threadIdsPattern = /id="commentthread_([a-zA-Z_]+)_(\d+)_(\d+)_(\d+)?_?area"/;
-		let start = null;
-		do {
-			const response = await this.getUserNews(start).catch(() => null);
-			start = null;
-			if (!response || !response.success) {
+SteamBadgeUnlocker.prototype.getLastFriendPosts = async function (minPosts = 1) {
+	/** @type {Array<CommentActionParams>} */
+	const posts = [];
+	const threadIdsPattern = /id="commentthread_([a-zA-Z_]+)_(\d+)_(\d+)_(\d+)?_?area"/;
+	let start = null;
+	do {
+		const response = await this.getUserNews(start).catch(() => null);
+		start = null;
+		if (!response || !response.success) {
+			break;
+		}
+		// parse start param for next request
+		const startValuePattern = /^.*?start=(\d+)$/;
+		if (startValuePattern.test(response.next_request)) {
+			start = Number(response.next_request.replace(startValuePattern, '$1'));
+		}
+		// find activity posts with comment option
+		const matches = (response.blotter_html || '').match(new RegExp(threadIdsPattern, 'g'));
+		if (matches && matches.length > 0) {
+			for (let elementId of matches) {
+				const [, type, owner, feature, feature2] = elementId.match(threadIdsPattern);
+				if (owner === this.getSteamId()) {
+					continue;
+				}
+				posts.push({
+					type,           // comment_type
+					owner,          // clan_steamid
+					feature,        // gidfeature
+					feature2,       // forum_topic_id | announcementGID | gidfeature2
+				});
+			}
+			if (posts.length >= minPosts) {
 				break;
 			}
-			// parse start param for next request
-			const startValuePattern = /^.*?start=(\d+)$/;
-			if (startValuePattern.test(response.next_request)) {
-				start = Number(response.next_request.replace(startValuePattern, '$1'));
-			}
-			// find activity posts with comment option
-			const matches = (response.blotter_html || '').match(new RegExp(threadIdsPattern, 'g'));
-			if (matches && matches.length > 0) {
-				for (let elementId of matches) {
-					const [, type, owner, feature, feature2] = elementId.match(threadIdsPattern);
-					if (owner === this.getSteamId()) {
-						continue;
-					}
-					posts.push({
-						type,           // comment_type
-						owner,          // clan_steamid
-						feature,        // gidfeature
-						feature2,       // forum_topic_id | announcementGID | gidfeature2
-					});
-				}
-				if (posts.length >= minPosts) {
-					break;
-				}
-			}
-		} while (start !== null);
-		resolve(posts);
-	});
+		}
+	} while (start !== null);
+	return posts;
 }
 
 /**

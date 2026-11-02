@@ -89,58 +89,46 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 	 * Fetch api key only one time.
 	 * @returns {Promise<string>}
 	 */
-	this.getWebApiKey = function () {
-		return new Promise((resolve, reject) => {
-			if (this._apiKey !== null) {
-				resolve(this._apiKey);
-				return;
-			}
-			this._apiKey = '';
-			this._community.getWebApiKey('localhost', (error, apiKey) => {
-				if (error) {
-					reject(error);
-					return;
-				}
-
-				this._apiKey = apiKey;
-				resolve(apiKey);
-			});
+	this.getWebApiKey = async function () {
+		if (this._apiKey !== null) {
+			return this._apiKey;
+		}
+		this._apiKey = '';
+		this._apiKey = await new Promise((resolve, reject) => {
+			this._community.getWebApiKey('localhost', (error, apiKey) => error ? reject(error) : resolve(apiKey));
 		});
+		return this._apiKey;
 	}
 
 	/**
 	 * Fetch api token only one time.
 	 * @returns {Promise<string>}
 	 */
-	this.getWebApiToken = function () {
-		return new Promise(async (resolve, reject) => {
-			if (this._apiToken !== null) {
-				resolve(this._apiToken);
-				return;
+	this.getWebApiToken = async function () {
+		if (this._apiToken !== null) {
+			return this._apiToken;
+		}
+		this._apiToken = '';
+		// fetch api token from store
+		const html = await this.get({
+			url: 'https://store.steampowered.com/points/shop',
+			qs: {
+				l: this.getLanguage(),
+			},
+			headers: {
+				'Origin': 'https://store.steampowered.com',
+				'Accept': '*/*',
+				'Referer': `${this.getProfileUrl()}/edit/info`,
 			}
-			this._apiToken = '';
-			// fetch api token from store
-			const html = await this.get({
-				url: 'https://store.steampowered.com/points/shop',
-				qs: {
-					l: this.getLanguage(),
-				},
-				headers: {
-					'Origin': 'https://store.steampowered.com',
-					'Accept': '*/*',
-					'Referer': `${this.getProfileUrl()}/edit/info`,
-				}
-			}).catch(() => null);
-			if (html) {
-				const tokenMatches = html.match(/webapi_token&quot;:&quot;([^"&]+)/);
-				if (tokenMatches && tokenMatches.length > 1) {
-					this._apiToken = tokenMatches[1];
-					resolve(this._apiToken);
-					return;
-				}
+		}).catch(() => null);
+		if (html) {
+			const tokenMatches = html.match(/webapi_token&quot;:&quot;([^"&]+)/);
+			if (tokenMatches && tokenMatches.length > 1) {
+				this._apiToken = tokenMatches[1];
+				return this._apiToken;
 			}
-			reject(createError(SteamBadgeUnlocker.EErrorCode.NOT_FOUND_WEBAPI_TOKEN));
-		});
+		}
+		throw createError(SteamBadgeUnlocker.EErrorCode.NOT_FOUND_WEBAPI_TOKEN);
 	}
 }
 

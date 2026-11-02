@@ -3,47 +3,52 @@ const DefaultOptions = require('../resources/OCommunityLeaderDefault');
 const {delay} = require('../components/helpers');
 
 const fs = require('fs');
+const {promisify} = require('util');
 const masterInstanceCache = {
 	friendSteamId: null,
 	friendsScreenshotFileId: null,
 };
 
 /**
+ * @param {Object} target
+ * @param {string} method
+ * @param {...*} args
+ * @returns {Promise<*>}
+ */
+async function callbackCall(target, method, ...args) {
+	return promisify(target[method]).apply(target, args);
+}
+
+/**
  * @param {SteamCommunity} _community
+ * @param {string} language
  * @returns {Promise<string|null>}
  */
-function getFirstScreenshotId(_community) {
-	return new Promise((resolve) => {
-		const friendSteamId = String(_community.steamID);
-		if (masterInstanceCache.friendSteamId === friendSteamId) {
-			resolve(masterInstanceCache.friendsScreenshotFileId);
-			return;
-		}
+async function getFirstScreenshotId(_community, language) {
+	const friendSteamId = String(_community.steamID);
+	if (masterInstanceCache.friendSteamId === friendSteamId) {
+		return masterInstanceCache.friendsScreenshotFileId;
+	}
+	const body = await new Promise((resolve) => {
 		_community.httpRequestGet({
 			url: `https://steamcommunity.com/profiles/${friendSteamId}/screenshots/`,
 			qs: {
-				l: 'english',
+				l: language,
 				appid: 0,
 				sort: 'newestfirst',
 				browsefilter: 'myfiles',
 				view: 'grid',
 				privacy: 30,
 			},
-		}, (error, response, body) => {
-			let friendsScreenshotFileId = null;
-			if (!error && body) {
-				const firstFile = body.match(/data-publishedfileid="(\d+)"/);
-				if (firstFile) {
-					friendsScreenshotFileId = firstFile[1];
-				}
-			}
-			if (!error) {
-				masterInstanceCache.friendSteamId = friendSteamId;
-				masterInstanceCache.friendsScreenshotFileId = friendsScreenshotFileId;
-			}
-			resolve(friendsScreenshotFileId);
-		});
+		}, (error, response, responseBody) => resolve(error ? null : responseBody));
 	});
+	const firstFile = body ? body.match(/data-publishedfileid="(\d+)"/) : null;
+	const friendsScreenshotFileId = firstFile ? firstFile[1] : null;
+	if (body !== null) {
+		masterInstanceCache.friendSteamId = friendSteamId;
+		masterInstanceCache.friendsScreenshotFileId = friendsScreenshotFileId;
+	}
+	return friendsScreenshotFileId;
 }
 
 /**
@@ -129,7 +134,7 @@ function CCommunityLeader(communityBadge, options) {
 			this.options.friendSteamId = masterSteamID;
 		}
 		if (!this.options.friendsScreenshotFileId && this.options.friendSteamId === masterSteamID) {
-			this.options.friendsScreenshotFileId = await getFirstScreenshotId(this.options.masterInstance).catch(() => null);
+			this.options.friendsScreenshotFileId = await getFirstScreenshotId(this.options.masterInstance, this._badgeUnlocker.getLanguage()).catch(() => null);
 			this.log('-', {friendsScreenshotFileId: this.options.friendsScreenshotFileId});
 		}
 	}
@@ -165,20 +170,15 @@ function CCommunityLeader(communityBadge, options) {
 			await this.finish();
 			return;
 		}
-		await new Promise((resolve) => {
-			const self = this;
-			this._community.getSteamUser(this._community.steamID, (e, user) => {
-				if (!e) {
-					self.isLimitedAccount = user.isLimitedAccount;
-					self.vacBanned = user.vacBanned;
-					self.tradeBanState = (user.tradeBanState !== 'None');
-					if (user.customURL) {
-						self._badgeUnlocker.setCustomProfileUrl(user.customURL);
-					}
-				}
-				resolve();
-			});
-		});
+		const user = await callbackCall(this._community, 'getSteamUser', this._community.steamID).catch(() => null);
+		if (user) {
+			this.isLimitedAccount = user.isLimitedAccount;
+			this.vacBanned = user.vacBanned;
+			this.tradeBanState = (user.tradeBanState !== 'None');
+			if (user.customURL) {
+				this._badgeUnlocker.setCustomProfileUrl(user.customURL);
+			}
+		}
 		const runQuest = async (questName) => {
 			let result;
 			let questError = null;
@@ -270,14 +270,11 @@ function CCommunityLeader(communityBadge, options) {
 		// steam client only
 		// vac banned account
 	}
-	this.finish = function () {
-		return new Promise((resolve) => {
-			if (this.options.forceRemoveFriend && this.options.friendSteamId) {
-				this._community.removeFriend(this.options.friendSteamId, (e) => resolve(!e))
-			} else {
-				resolve(true);
-			}
-		});
+	this.finish = async function () {
+		if (!this.options.forceRemoveFriend || !this.options.friendSteamId) {
+			return true;
+		}
+		return callbackCall(this._community, 'removeFriend', this.options.friendSteamId).then(() => true, () => false);
 	}
 }
 
@@ -285,62 +282,51 @@ function CCommunityLeader(communityBadge, options) {
  * Add a new friend to your friends list.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.AddFriendToFriendsList = function () {
-	return new Promise(async (resolve) => {
-		if (!this.options.friendSteamId) {
-			resolve(false);
-			return;
-		}
-		if (this.options.masterInstance) {
-			await new Promise((resolve2) => {
-				this.options.masterInstance.addFriend(this._badgeUnlocker.getSteamId(), () => resolve2());
-			});
-			await delay(1);
-		}
-		this._community.addFriend(this.options.friendSteamId, (e) => resolve(!e));
-	});
+CCommunityLeader.prototype.AddFriendToFriendsList = async function () {
+	if (!this.options.friendSteamId) {
+		return false;
+	}
+	if (this.options.masterInstance) {
+		await callbackCall(this.options.masterInstance, 'addFriend', this._badgeUnlocker.getSteamId()).catch(() => null);
+		await delay(1);
+	}
+	return callbackCall(this._community, 'addFriend', this.options.friendSteamId).then(() => true, () => false);
 }
 
 /**
  * Browse games on the Steam Store and select one to add to your wishlist.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.AddItemToWishlist = function () {
-	return new Promise(async (resolve) => {
-		const appId = this.options.wishlistAppId;
-		const response = await this._badgeUnlocker.addToWishlist(appId).catch(() => null);
-		if (response && response.success) {
-			// (optional) clean up
-			await this._badgeUnlocker.removeFromWishlist(appId).catch(() => null);
-			resolve(true);
-			return;
-		}
-		resolve(false);
-	})
+CCommunityLeader.prototype.AddItemToWishlist = async function () {
+	const appId = this.options.wishlistAppId;
+	const response = await this._badgeUnlocker.addToWishlist(appId).catch(() => null);
+	if (!response || !response.success) {
+		return false;
+	}
+	// (optional) clean up
+	await this._badgeUnlocker.removeFromWishlist(appId).catch(() => null);
+	return true;
 }
 
 /**
  * Complete a set of trading cards and craft them into a game badge.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.CraftGameBadge = function () {
+CCommunityLeader.prototype.CraftGameBadge = async function () {
 	this._rgDroppedItems = [];
-	return new Promise(async (resolve) => {
-		let appId = this.options.craftGameBadgeAppId;
-		if (!appId) {
-			const apps = await this._badgeUnlocker.getAppIdsReadyForCrafting().catch(() => []);
-			if (apps.length === 0) {
-				resolve(false);
-				return;
-			}
-			appId = apps[0];
+	let appId = this.options.craftGameBadgeAppId;
+	if (!appId) {
+		const apps = await this._badgeUnlocker.getAppIdsReadyForCrafting().catch(() => []);
+		if (apps.length === 0) {
+			return false;
 		}
-		const result = await this._badgeUnlocker.craftBadge(appId).catch(() => null);
-		if (result && result.success && typeof result.rgDroppedItems !== 'undefined') {
-			this._rgDroppedItems = result.rgDroppedItems;
-		}
-		resolve(!!result);
-	});
+		appId = apps[0];
+	}
+	const result = await this._badgeUnlocker.craftBadge(appId).catch(() => null);
+	if (result && result.success && typeof result.rgDroppedItems !== 'undefined') {
+		this._rgDroppedItems = result.rgDroppedItems;
+	}
+	return !!result;
 }
 
 /**
@@ -355,160 +341,131 @@ CCommunityLeader.prototype.FeatureBadgeOnProfile = function () {
  * Browse some existing Steam Groups and join up.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.JoinGroup = function () {
-	return new Promise((resolve) => {
-		const self = this;
-		self._community.joinGroup(self.options.joinGroupId, (e) => {
-			if (e) {
-				resolve(false);
-				return;
-			}
-			if (!self.options.leaveGroupAutomatically) {
-				resolve(true);
-				return;
-			}
-			self._community.leaveGroup(self.options.joinGroupId, () => resolve(true));
-		});
-	});
+CCommunityLeader.prototype.JoinGroup = async function () {
+	const joined = await callbackCall(this._community, 'joinGroup', this.options.joinGroupId).then(() => true, () => false);
+	if (!joined || !this.options.leaveGroupAutomatically) {
+		return joined;
+	}
+	await callbackCall(this._community, 'leaveGroup', this.options.joinGroupId).catch(() => null);
+	return true;
 }
 
 /**
  * Visit a friend's profile page and add a new comment.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.PostCommentOnFriendsPage = function () {
-	return new Promise((resolve) => {
-		const self = this;
-		if (!self.options.friendSteamId) {
-			resolve(false);
-			return;
-		}
-		self._community.postUserComment(self.options.friendSteamId, self.options.friendsPageComment, (error, commentId) => {
-			if (error) {
-				resolve(false);
-				return;
-			}
-			// cleanup
-			self._community.deleteUserComment(self.options.friendSteamId, commentId, () => resolve(true));
-		});
-	});
+CCommunityLeader.prototype.PostCommentOnFriendsPage = async function () {
+	if (!this.options.friendSteamId) {
+		return false;
+	}
+	const posted = await callbackCall(this._community, 'postUserComment', this.options.friendSteamId, this.options.friendsPageComment)
+		.then(commentId => ({commentId}), () => null);
+	if (!posted) {
+		return false;
+	}
+	// cleanup
+	await callbackCall(this._community, 'deleteUserComment', this.options.friendSteamId, posted.commentId).catch(() => null);
+	return true;
 }
 
 /**
  * Visit your friend's screenshot pages and add a new comment.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.PostCommentOnFriendsScreenshot = function () {
-	return new Promise(async (resolve) => {
-		const commentId = await this._badgeUnlocker.postSharedFileComment(this.options.friendSteamId, this.options.friendsScreenshotFileId, this.options.friendsScreenshotComment, 5).catch(() => null);
-		if (commentId) {
-			// cleanup
-			await this._badgeUnlocker.deleteSharedFileComment(this.options.friendSteamId, this.options.friendsScreenshotFileId, commentId, 5).catch(() => null);
-			resolve(true);
-			return;
-		}
-		resolve(false);
-	});
+CCommunityLeader.prototype.PostCommentOnFriendsScreenshot = async function () {
+	const commentId = await this._badgeUnlocker.postSharedFileComment(this.options.friendSteamId, this.options.friendsScreenshotFileId, this.options.friendsScreenshotComment, 5).catch(() => null);
+	if (!commentId) {
+		return false;
+	}
+	// cleanup
+	await this._badgeUnlocker.deleteSharedFileComment(this.options.friendSteamId, this.options.friendsScreenshotFileId, commentId, 5).catch(() => null);
+	return true;
 }
 
 /**
  * Press your screenshot key (usually F12) while in a game to take a new screenshot, and then publish it to your friends.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.PostScreenshot = function () {
-	return new Promise(async (resolve) => {
-		const file = fs.createReadStream(this.options.screenshotPath);
-		const response = await this._badgeUnlocker.uploadScreenshot(this.options.screenshotAppId, this.options.screenshotTitle, this.options.screenshotDescription, file).catch(() => null);
-		if (response) {
-			await this._badgeUnlocker.deleteSharedFile(response.id, this.options.screenshotAppId, 'screenshots').catch(() => null);
-			resolve(true);
-			return;
-		}
-		resolve(false);
-	});
+CCommunityLeader.prototype.PostScreenshot = async function () {
+	const file = fs.createReadStream(this.options.screenshotPath);
+	const response = await this._badgeUnlocker.uploadScreenshot(this.options.screenshotAppId, this.options.screenshotTitle, this.options.screenshotDescription, file).catch(() => null);
+	if (!response) {
+		return false;
+	}
+	await this._badgeUnlocker.deleteSharedFile(response.id, this.options.screenshotAppId, 'screenshots').catch(() => null);
+	return true;
 }
 
 /**
  * Visit your Activity Feed to post a status.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.PostStatusToFriends = function () {
-	return new Promise((resolve) => {
-		const self = this;
-		self._community.postProfileStatus(self.options.statusText, {appID: self.options.statusAppId}, (error, postId) => {
-			if (error) {
-				resolve(false);
-				return;
-			}
-			self._community.deleteProfileStatus(postId, () => resolve(true));
-		});
-	});
+CCommunityLeader.prototype.PostStatusToFriends = async function () {
+	const posted = await callbackCall(this._community, 'postProfileStatus', this.options.statusText, {appID: this.options.statusAppId})
+		.then(postId => ({postId}), () => null);
+	if (!posted) {
+		return false;
+	}
+	await callbackCall(this._community, 'deleteProfileStatus', posted.postId).catch(() => null);
+	return true;
 }
 
 /**
  * Visit your videos page to pick a new video to share.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.PostVideo = function () {
-	return new Promise(async (resolve) => {
-		if (!this.options.youtubeCookies || !this.options.youtubeCookies.accessToken) {
-			resolve(false);
-			return;
+CCommunityLeader.prototype.PostVideo = async function () {
+	if (!this.options.youtubeCookies || !this.options.youtubeCookies.accessToken) {
+		return false;
+	}
+	this._badgeUnlocker.setYoutubeCookies(this.options.youtubeCookies);
+	if (!this.options.youtubeId) {
+		const videos = await this._badgeUnlocker.fetchYoutubeVideos().catch(() => []);
+		if (videos.length === 0) {
+			return false;
 		}
-		this._badgeUnlocker.setYoutubeCookies(this.options.youtubeCookies);
-		if (!this.options.youtubeId) {
-			const videos = await this._badgeUnlocker.fetchYoutubeVideos().catch(() => []);
-			if (videos.length === 0) {
-				resolve(false);
-				return;
-			}
-			this.options.youtubeId = videos[0].youtubeId;
+		this.options.youtubeId = videos[0].youtubeId;
+	}
+	const fileIdsBefore = await this._badgeUnlocker.getProfileVideos()
+		.then(videos => videos.map(video => video.fileId), () => null);
+	if (!fileIdsBefore) {
+		return false;
+	}
+	const postedVideos = await this._badgeUnlocker.postYoutubeVideo(this.options.youtubeId).catch(() => 0);
+	if (postedVideos <= 0) {
+		return false;
+	}
+	const videos = await this._badgeUnlocker.getProfileVideos().catch(() => []);
+	for (let video of videos) {
+		if (video.youtubeId === this.options.youtubeId && fileIdsBefore.indexOf(video.fileId) === -1) {
+			await this._badgeUnlocker.deleteSharedFile(video.fileId, 0, 'videos').catch(() => null);
+			break;
 		}
-		const fileIdsBefore = await this._badgeUnlocker.getProfileVideos()
-			.then(videos => videos.map(video => video.fileId), () => null);
-		if (!fileIdsBefore) {
-			resolve(false);
-			return;
-		}
-		const postedVideos = await this._badgeUnlocker.postYoutubeVideo(this.options.youtubeId).catch(() => 0);
-		if (postedVideos > 0) {
-			const videos = await this._badgeUnlocker.getProfileVideos().catch(() => []);
-			for (let video of videos) {
-				if (video.youtubeId === this.options.youtubeId && fileIdsBefore.indexOf(video.fileId) === -1) {
-					await this._badgeUnlocker.deleteSharedFile(video.fileId, 0, 'videos').catch(() => null);
-					break;
-				}
-			}
-			resolve(true);
-			return;
-		}
-		resolve(false);
-	});
+	}
+	return true;
 }
 
 /**
  * Visit your Activity Feed and rate up any content from a friend or content author you follow.
  * @returns {Promise<true>}
  */
-CCommunityLeader.prototype.RateUpContentInActivityFeed = function () {
-	return new Promise(async (resolve) => {
-		// 1. vote up screenshot file.
-		// friend posted it in the past, and it was in activity
-		await this._badgeUnlocker.voteSharedFile(this.options.friendsScreenshotFileId).catch(() => null);
-		// 2. vote something from activity feed, probably nothing will be found
-		const activity = await this._badgeUnlocker.getLastFriendPosts(2).catch(() => []);
-		for (let params of activity) {
-			const response = await this._badgeUnlocker.voteContent({
-				...params,
-				action: 'upvote',
-			}).catch(() => null);
-			if (response && response.success) {
-				break;
-			}
+CCommunityLeader.prototype.RateUpContentInActivityFeed = async function () {
+	// 1. vote up screenshot file.
+	// friend posted it in the past, and it was in activity
+	await this._badgeUnlocker.voteSharedFile(this.options.friendsScreenshotFileId).catch(() => null);
+	// 2. vote something from activity feed, probably nothing will be found
+	const activity = await this._badgeUnlocker.getLastFriendPosts(2).catch(() => []);
+	for (let params of activity) {
+		const response = await this._badgeUnlocker.voteContent({
+			...params,
+			action: 'upvote',
+		}).catch(() => null);
+		if (response && response.success) {
+			break;
 		}
-		await this._badgeUnlocker.logFriendActivityUpvote().catch(() => null);
-		resolve(true);
-	});
+	}
+	await this._badgeUnlocker.logFriendActivityUpvote().catch(() => null);
+	return true;
 }
 
 /**
@@ -523,53 +480,44 @@ CCommunityLeader.prototype.RateWorkshopItem = function () {
  * Choose a new game from your games list to review.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.RecommendGame = function () {
-	return new Promise(async (resolve) => {
-		const response = await this._badgeUnlocker.addGameRecommendation(this.options.reviewAppId, this.options.reviewText).catch(() => null);
-		if (response && response.success) {
-			await this._badgeUnlocker.deleteGameRecommendation(this.options.reviewAppId).catch(() => null);
-			resolve(true);
-			return;
-		}
-		resolve(false);
-	});
+CCommunityLeader.prototype.RecommendGame = async function () {
+	const response = await this._badgeUnlocker.addGameRecommendation(this.options.reviewAppId, this.options.reviewText).catch(() => null);
+	if (!response || !response.success) {
+		return false;
+	}
+	await this._badgeUnlocker.deleteGameRecommendation(this.options.reviewAppId).catch(() => null);
+	return true;
 }
 
 /**
  * Use the discussions search to find a topic that interests you.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.SearchInDiscussions = function () {
-	return new Promise(async (resolve) => {
-		const html = await this._badgeUnlocker.discussionsSearch(this.options.discussionsKeyword).catch(() => null);
-		resolve(!!html);
-	});
+CCommunityLeader.prototype.SearchInDiscussions = async function () {
+	const html = await this._badgeUnlocker.discussionsSearch(this.options.discussionsKeyword).catch(() => null);
+	return !!html;
 }
 
 /**
  * Profile backgrounds are dropped during trading card crafting and are tradable.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.SetProfileBackground = function () {
-	return new Promise(async (resolve) => {
-		const item = this._rgDroppedItems.find(item => item.label === 'Background');
-		if (item && item.economy_hover_data) {
-			const idMatches = item.economy_hover_data.match(/^753\/\d\/(\d+)\/\d+/);
-			if (idMatches && idMatches.length > 1) {
-				const result = await this._badgeUnlocker.setProfileBackground(idMatches[1]).catch(() => null);
-				resolve(!!result);
-				return;
-			}
+CCommunityLeader.prototype.SetProfileBackground = async function () {
+	const item = this._rgDroppedItems.find(item => item.label === 'Background');
+	if (item && item.economy_hover_data) {
+		const idMatches = item.economy_hover_data.match(/^753\/\d\/(\d+)\/\d+/);
+		if (idMatches && idMatches.length > 1) {
+			const result = await this._badgeUnlocker.setProfileBackground(idMatches[1]).catch(() => null);
+			return !!result;
 		}
+	}
 
-		const items = await this._badgeUnlocker.getOwnedProfileItems().catch(() => null);
-		if (items && items.response.profile_backgrounds && items.response.profile_backgrounds.length > 0) {
-			const result = await this._badgeUnlocker.setProfileBackground(items.response.profile_backgrounds[0].communityitemid).catch(() => null);
-			resolve(!!result);
-			return;
-		}
-		resolve(false);
-	});
+	const items = await this._badgeUnlocker.getOwnedProfileItems().catch(() => null);
+	if (items && items.response.profile_backgrounds && items.response.profile_backgrounds.length > 0) {
+		const result = await this._badgeUnlocker.setProfileBackground(items.response.profile_backgrounds[0].communityitemid).catch(() => null);
+		return !!result;
+	}
+	return false;
 }
 
 /**
@@ -584,21 +532,13 @@ CCommunityLeader.prototype.SetupCommunityAvatar = function () {
  * Edit your community profile to set a real name. Any name will work, but setting your real name will help your friends know who you are.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.SetupCommunityRealName = function () {
-	return new Promise((resolve) => {
-		const self = this;
-		self._community.editProfile({realName: self.options.realName}, (e) => {
-			if (e) {
-				resolve(false);
-				return;
-			}
-			if (!self.options.resetRealName) {
-				resolve(true);
-				return;
-			}
-			self._community.editProfile({realName: ''}, () => resolve(true));
-		});
-	});
+CCommunityLeader.prototype.SetupCommunityRealName = async function () {
+	const saved = await callbackCall(this._community, 'editProfile', {realName: this.options.realName}).then(() => true, () => false);
+	if (!saved || !this.options.resetRealName) {
+		return saved;
+	}
+	await callbackCall(this._community, 'editProfile', {realName: ''}).catch(() => null);
+	return true;
 }
 
 /**
@@ -613,67 +553,57 @@ CCommunityLeader.prototype.SubscribeToWorkshopItem = function () {
  * Use Steam Trading to make a trade.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.Trade = function () {
-	return new Promise((resolve) => {
-		// not ready
-		resolve(false);
-	});
+CCommunityLeader.prototype.Trade = async function () {
+	// not ready
+	return false;
 }
 
 /**
  * Visit the Steam Store and complete a discovery queue.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.UseDiscoveryQueue = function () {
-	return new Promise((resolve) => {
-		this._badgeUnlocker.finishDiscoveryQueue().then(() => resolve(true), () => resolve(false));
-	});
+CCommunityLeader.prototype.UseDiscoveryQueue = async function () {
+	return this._badgeUnlocker.finishDiscoveryQueue().then(() => true, () => false);
 }
 
 /**
  * Visit the broadcasts page on the Steam Community and watch someone else play!
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.ViewBroadcast = function () {
-	return new Promise(async (resolve) => {
-		let broadcastWatchId = this.options.broadcastWatchId;
-		if (!broadcastWatchId) {
-			/** @type {Array<BroadcastLink>} */
-			const links = await this._badgeUnlocker.getBroadcastTrendLinks().catch(() => []);
-			if (links.length === 0) {
-				resolve(false);
-				return;
-			}
-			broadcastWatchId = links[0].watchId;
+CCommunityLeader.prototype.ViewBroadcast = async function () {
+	let broadcastWatchId = this.options.broadcastWatchId;
+	if (!broadcastWatchId) {
+		/** @type {Array<BroadcastLink>} */
+		const links = await this._badgeUnlocker.getBroadcastTrendLinks().catch(() => []);
+		if (links.length === 0) {
+			return false;
 		}
-		const response = await this._badgeUnlocker.getBroadcastManifest(broadcastWatchId).catch(() => null);
-		resolve(!!(response && response.success === 'ready'));
-	});
+		broadcastWatchId = links[0].watchId;
+	}
+	const response = await this._badgeUnlocker.getBroadcastManifest(broadcastWatchId).catch(() => null);
+	return !!(response && response.success === 'ready');
 }
 
 /**
  * While in game, open the Steam Overlay and browse the available game guides.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.ViewGuideInOverlay = function () {
-	return new Promise(async resolve => {
-		let guideFileId = this.options.guideFileId;
-		if (!guideFileId) {
-			/** @type {Array<GuideLink>} */
-			const links = await this._badgeUnlocker.getGuidesTrendLinks().catch(() => []);
-			if (links.length === 0) {
-				resolve(false);
-				return;
-			}
-			guideFileId = links[0].guideId;
+CCommunityLeader.prototype.ViewGuideInOverlay = async function () {
+	let guideFileId = this.options.guideFileId;
+	if (!guideFileId) {
+		/** @type {Array<GuideLink>} */
+		const links = await this._badgeUnlocker.getGuidesTrendLinks().catch(() => []);
+		if (links.length === 0) {
+			return false;
 		}
-		this._badgeUnlocker.getSharedFileDetails(guideFileId, {
-			headers: {
-				'User-Agent': this.options.steamOverlayUserAgent,
-				'Referer': 'https://steamcommunity.com/?subsection=guides',
-			},
-		}).then(() => resolve(true), () => resolve(false));
-	});
+		guideFileId = links[0].guideId;
+	}
+	return this._badgeUnlocker.getSharedFileDetails(guideFileId, {
+		headers: {
+			'User-Agent': this.options.steamOverlayUserAgent,
+			'Referer': 'https://steamcommunity.com/?subsection=guides',
+		},
+	}).then(() => true, () => false);
 }
 
 // ---- SteamUser required, not possible with browser session
@@ -683,41 +613,29 @@ CCommunityLeader.prototype.ViewGuideInOverlay = function () {
  * Launch any game from your games list in the Steam Client.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.PlayGame = function () {
-	return new Promise(async (resolve) => {
-		const steamUser = this.options.steamUser;
-		if (!steamUser) {
-			resolve(false);
-			return;
-		}
-		await Promise.resolve(steamUser.requestFreeLicense([this.options.playAppId])).catch(() => null);
+CCommunityLeader.prototype.PlayGame = async function () {
+	const steamUser = this.options.steamUser;
+	if (!steamUser) {
+		return false;
+	}
+	await Promise.resolve(steamUser.requestFreeLicense([this.options.playAppId])).catch(() => null);
 
-		steamUser.gamesPlayed([{game_id: this.options.playAppId}], true);
-		setTimeout(() => {
-			steamUser.gamesPlayed([]);
-			resolve(true);
-		}, 1000 * this.options.playSeconds);
-	});
+	steamUser.gamesPlayed([{game_id: this.options.playAppId}], true);
+	await delay(this.options.playSeconds);
+	steamUser.gamesPlayed([]);
+	return true;
 }
 
 /**
  * :yay: Find and use a Steam Emoticon in chat. Emoticons are dropped when crafting trading cards and are tradable.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.UseEmoticonInChat = function () {
-	return new Promise(async (resolve) => {
-		if (!this.options.friendSteamId) {
-			resolve(false);
-			return;
-		}
-		const steamUser = this.options.steamUser;
-		if (steamUser) {
-			const result = await Promise.resolve(steamUser.chat.sendFriendMessage(this.options.friendSteamId, this.options.emotionMessageText, {})).catch(() => null);
-			resolve(!!result);
-			return;
-		}
-		resolve(false);
-	});
+CCommunityLeader.prototype.UseEmoticonInChat = async function () {
+	if (!this.options.friendSteamId || !this.options.steamUser) {
+		return false;
+	}
+	const result = await Promise.resolve(this.options.steamUser.chat.sendFriendMessage(this.options.friendSteamId, this.options.emotionMessageText, {})).catch(() => null);
+	return !!result;
 }
 
 
@@ -728,8 +646,8 @@ CCommunityLeader.prototype.UseEmoticonInChat = function () {
  * @returns {Promise<null>}
  * @deprecated Manual quests or violates steam ToS.
  */
-function disabledQuest() {
-	return new Promise((resolve) => resolve(null));
+async function disabledQuest() {
+	return null;
 }
 
 /** (Violates steam ToS) Buy or Sell an item from your Inventory on the Community Market. */
