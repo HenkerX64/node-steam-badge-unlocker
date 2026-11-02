@@ -16,8 +16,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-16-${{ hashFiles('**/package-lock.json') }}
-      - run: npm ci
+          key: ${{ runner.os }}-node-16-${{ hashFiles('package.json') }}
+      - run: npm install
       - run: npm prune
         env:
           NODE_ENV: production
