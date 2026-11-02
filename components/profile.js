@@ -134,7 +134,7 @@ SteamBadgeUnlocker.prototype.getLastFriendPosts = function (minPosts = 1) {
 				start = Number(response.next_request.replace(startValuePattern, '$1'));
 			}
 			// find activity posts with comment option
-			const matches = response.blotter_html.match(new RegExp(threadIdsPattern, 'g'));
+			const matches = (response.blotter_html || '').match(new RegExp(threadIdsPattern, 'g'));
 			if (matches && matches.length > 0) {
 				for (let elementId of matches) {
 					const [, type, owner, feature, feature2] = elementId.match(threadIdsPattern);

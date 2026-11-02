@@ -58,3 +58,29 @@ it('postSharedFileComment() - Steam error text as message', async () => {
 	assert.strictEqual(error.code, 'REJECTED_COMMENT_POST');
 	assert.strictEqual(error.message, 'You\'ve been posting too frequently');
 });
+it('deleteSharedFileComment() - comment still present', async () => {
+	_badgeUnlocker.getCommunity().setResultStack([[null, null, {success: true, comments_html: '<div id="comment_1001"></div>'}]]);
+	const result = await Promise.race([
+		_badgeUnlocker.deleteSharedFileComment('76000000000000001', '1000', '1001').catch(e => e.code),
+		new Promise(resolve => setTimeout(() => resolve('timeout'), 500)),
+	]);
+	assert.strictEqual(result, 'REJECTED_COMMENT_DELETE');
+});
+it('deleteSharedFileComment() - response without comments_html', async () => {
+	for (const body of [{success: false}, '<html lang="en"></html>']) {
+		_badgeUnlocker.getCommunity().setResultStack([[null, null, body]]);
+		const result = await Promise.race([
+			_badgeUnlocker.deleteSharedFileComment('76000000000000001', '1000', '1001').catch(e => e.code),
+			new Promise(resolve => setTimeout(() => resolve('timeout'), 500)),
+		]);
+		assert.strictEqual(result, 'UNKNOWN_COMMENT_DELETE');
+	}
+});
+it('postSharedFileComment() - success without comments_html', async () => {
+	_badgeUnlocker.getCommunity().setResultStack([[null, null, {success: true}]]);
+	const result = await Promise.race([
+		_badgeUnlocker.postSharedFileComment('76000000000000001', '1000', 'test').then(() => 'resolved', error => error.code),
+		new Promise(resolve => setTimeout(() => resolve('timeout'), 500)),
+	]);
+	assert.strictEqual(result, 'ON_SUCCESS_ID_NOT_FOUND');
+});

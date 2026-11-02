@@ -209,7 +209,7 @@ SteamBadgeUnlocker.prototype.postSharedFileComment = function (steamId, fileId, 
 			},
 		}).then((response) => {
 			if (response && response.success) {
-				const commentAttrId = response.comments_html.match(/id="comment_(\d+)"/);
+				const commentAttrId = (response.comments_html || '').match(/id="comment_(\d+)"/);
 				if (commentAttrId) {
 					resolve(commentAttrId[1]);
 					return;
@@ -258,12 +258,12 @@ SteamBadgeUnlocker.prototype.deleteSharedFileComment = function (steamId, fileId
 				'Referer': 'https://steamcommunity.com/sharedfiles/filedetails/?id=' + fileId + '&insideModal=1',
 			},
 		}).then((response) => {
-
-			if (response.success && !response.comments_html.includes(commentId)) {
+			const commentsHtml = response.comments_html || '';
+			if (response.success && !commentsHtml.includes(commentId)) {
 				resolve(true);
 			} else if (response.error) {
 				reject(createError(EErrorCode.REJECTED_COMMENT_DELETE, response.error));
-			} else if (body.comments_html.includes(commentId)) {
+			} else if (commentsHtml.includes(commentId)) {
 				reject(createError(EErrorCode.REJECTED_COMMENT_DELETE));
 			} else {
 				reject(createError(EErrorCode.UNKNOWN_COMMENT_DELETE));

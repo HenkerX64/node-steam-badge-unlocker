@@ -76,3 +76,11 @@ it('deleteGameRecommendation()', async () => {
 });
 
 
+it('getLastFriendPosts() - response without blotter_html', async () => {
+	_badgeUnlocker.getCommunity().setResultStack([[null, null, {success: true}]]);
+	const result = await Promise.race([
+		_badgeUnlocker.getLastFriendPosts(),
+		new Promise(resolve => setTimeout(() => resolve('timeout'), 500)),
+	]);
+	assert.deepStrictEqual(result, []);
+});
