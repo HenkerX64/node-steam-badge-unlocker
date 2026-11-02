@@ -37,11 +37,28 @@ function getFirstScreenshotId(_community) {
 					friendsScreenshotFileId = firstFile[1];
 				}
 			}
-			masterInstanceCache.friendSteamId = friendSteamId;
-			masterInstanceCache.friendsScreenshotFileId = friendsScreenshotFileId;
+			if (!error) {
+				masterInstanceCache.friendSteamId = friendSteamId;
+				masterInstanceCache.friendsScreenshotFileId = friendsScreenshotFileId;
+			}
 			resolve(friendsScreenshotFileId);
 		});
 	});
+}
+
+/**
+ * @param {boolean|null} result
+ * @param {Error|null} error
+ * @returns {boolean|null|string|number}
+ */
+function questLogValue(result, error) {
+	if (result === true) {
+		return 'OK';
+	}
+	if (error) {
+		return error.code || error.message || String(error);
+	}
+	return result;
 }
 
 /**
@@ -162,11 +179,22 @@ function CCommunityLeader(communityBadge, options) {
 				resolve();
 			});
 		});
+		const runQuest = async (questName) => {
+			let result;
+			let questError = null;
+			try {
+				result = await this[questName]();
+			} catch (error) {
+				questError = error;
+				result = false;
+			}
+			this.log(questName, questLogValue(result, questError));
+		};
 		const executeAll = async (questsNames) => {
 			let i;
 			for (let questName of questsNames) {
-				this.log(questName, await this[questName]());
-				i = openQuests.filter(quest => !!quest).findIndex(quest => quest.name === questName);
+				await runQuest(questName);
+				i = openQuests.findIndex(quest => quest && quest.name === questName);
 				if (openQuests[i]) {
 					delete openQuests[i];
 				}
@@ -178,7 +206,7 @@ function CCommunityLeader(communityBadge, options) {
 				if (!questsNames.includes(questName)) {
 					continue;
 				}
-				this.log(questName, await this[questName]());
+				await runQuest(questName);
 				delete openQuests[i];
 			}
 		};
@@ -233,7 +261,7 @@ function CCommunityLeader(communityBadge, options) {
 		if (!this.isLimitedAccount && !this.vacBanned) {
 			await execute(['RateWorkshopItem']);
 		}
-		if (openQuestsBefore !== openQuests.length) {
+		if (openQuestsBefore !== openQuests.filter(quest => !!quest).length) {
 			await delay(2);
 		}
 		const openQuestsAfter = (await getOpenQuests()).length;
@@ -244,7 +272,7 @@ function CCommunityLeader(communityBadge, options) {
 	}
 	this.finish = function () {
 		return new Promise((resolve) => {
-			if (this.options.forceRemoveFriend) {
+			if (this.options.forceRemoveFriend && this.options.friendSteamId) {
 				this._community.removeFriend(this.options.friendSteamId, (e) => resolve(!e))
 			} else {
 				resolve(true);
@@ -259,6 +287,10 @@ function CCommunityLeader(communityBadge, options) {
  */
 CCommunityLeader.prototype.AddFriendToFriendsList = function () {
 	return new Promise(async (resolve) => {
+		if (!this.options.friendSteamId) {
+			resolve(false);
+			return;
+		}
 		if (this.options.masterInstance) {
 			await new Promise((resolve2) => {
 				this.options.masterInstance.addFriend(this._badgeUnlocker.getSteamId(), () => resolve2());
@@ -347,6 +379,10 @@ CCommunityLeader.prototype.JoinGroup = function () {
 CCommunityLeader.prototype.PostCommentOnFriendsPage = function () {
 	return new Promise((resolve) => {
 		const self = this;
+		if (!self.options.friendSteamId) {
+			resolve(false);
+			return;
+		}
 		self._community.postUserComment(self.options.friendSteamId, self.options.friendsPageComment, (error, commentId) => {
 			if (error) {
 				resolve(false);
@@ -384,7 +420,7 @@ CCommunityLeader.prototype.PostScreenshot = function () {
 		const file = fs.createReadStream(this.options.screenshotPath);
 		const response = await this._badgeUnlocker.uploadScreenshot(this.options.screenshotAppId, this.options.screenshotTitle, this.options.screenshotDescription, file).catch(() => null);
 		if (response) {
-			await this._badgeUnlocker.deleteSharedFile(response.id, this.options.screenshotAppId, 'screenshots');
+			await this._badgeUnlocker.deleteSharedFile(response.id, this.options.screenshotAppId, 'screenshots').catch(() => null);
 			resolve(true);
 			return;
 		}
@@ -415,6 +451,10 @@ CCommunityLeader.prototype.PostStatusToFriends = function () {
  */
 CCommunityLeader.prototype.PostVideo = function () {
 	return new Promise(async (resolve) => {
+		if (!this.options.youtubeCookies || !this.options.youtubeCookies.accessToken) {
+			resolve(false);
+			return;
+		}
 		this._badgeUnlocker.setYoutubeCookies(this.options.youtubeCookies);
 		if (!this.options.youtubeId) {
 			const videos = await this._badgeUnlocker.fetchYoutubeVideos().catch(() => []);
@@ -424,11 +464,17 @@ CCommunityLeader.prototype.PostVideo = function () {
 			}
 			this.options.youtubeId = videos[0].youtubeId;
 		}
+		const fileIdsBefore = await this._badgeUnlocker.getProfileVideos()
+			.then(videos => videos.map(video => video.fileId), () => null);
+		if (!fileIdsBefore) {
+			resolve(false);
+			return;
+		}
 		const postedVideos = await this._badgeUnlocker.postYoutubeVideo(this.options.youtubeId).catch(() => 0);
 		if (postedVideos > 0) {
 			const videos = await this._badgeUnlocker.getProfileVideos().catch(() => []);
 			for (let video of videos) {
-				if (video.youtubeId === this.options.youtubeId) {
+				if (video.youtubeId === this.options.youtubeId && fileIdsBefore.indexOf(video.fileId) === -1) {
 					await this._badgeUnlocker.deleteSharedFile(video.fileId, 0, 'videos').catch(() => null);
 					break;
 				}
@@ -644,7 +690,7 @@ CCommunityLeader.prototype.PlayGame = function () {
 			resolve(false);
 			return;
 		}
-		await steamUser.requestFreeLicense([this.options.playAppId]);
+		await Promise.resolve(steamUser.requestFreeLicense([this.options.playAppId])).catch(() => null);
 
 		steamUser.gamesPlayed([{game_id: this.options.playAppId}], true);
 		setTimeout(() => {
@@ -660,26 +706,16 @@ CCommunityLeader.prototype.PlayGame = function () {
  */
 CCommunityLeader.prototype.UseEmoticonInChat = function () {
 	return new Promise(async (resolve) => {
+		if (!this.options.friendSteamId) {
+			resolve(false);
+			return;
+		}
 		const steamUser = this.options.steamUser;
 		if (steamUser) {
-			const result = await steamUser.chat.sendFriendMessage(this.options.friendSteamId, this.options.emotionMessageText, {});
+			const result = await Promise.resolve(steamUser.chat.sendFriendMessage(this.options.friendSteamId, this.options.emotionMessageText, {})).catch(() => null);
 			resolve(!!result);
 			return;
 		}
-		// deprecated, but working option
-		if (typeof this._community.chatLogon === 'function') {
-			const self = this;
-			this._community.on('chatLogOnFailed', () => resolve(false));
-			this._community.on('chatLoggedOn', () => {
-				self._community.chatMessage(self.options.friendSteamId, self.options.emotionMessageText, 'saytext', (e) => {
-					self._community.chatLogoff();
-					resolve(!e);
-				});
-			});
-			this._community.chatLogon();
-			return;
-		}
-
 		resolve(false);
 	});
 }

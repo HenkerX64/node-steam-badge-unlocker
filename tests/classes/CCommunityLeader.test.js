@@ -73,3 +73,185 @@ it('SetProfileBackground() - without crafting', async () => {
 	assert.ok(await leader.SetProfileBackground());
 });
 
+
+/**
+ * @param {Promise} promise
+ * @param {number} ms
+ * @returns {Promise<*>}
+ */
+function settleOrTimeout(promise, ms = 500) {
+	return Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), ms))]);
+}
+
+it('PostVideo() - disabled with accessToken null', async () => {
+	const videoLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({
+		youtubeCookies: {accessToken: null},
+	});
+	assert.strictEqual(await settleOrTimeout(videoLeader.PostVideo()), false);
+});
+
+it('PostScreenshot() - cleanup failure does not hang', async () => {
+	const screenshotUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	screenshotUnlocker.deleteSharedFile = () => Promise.reject(new Error('profile_fatalerror_message'));
+	const screenshotLeader = screenshotUnlocker.createCommunityLeader({});
+	assert.strictEqual(await settleOrTimeout(screenshotLeader.PostScreenshot()), true);
+});
+
+it('start() - forceAddFriend runs each friend quest once', async () => {
+	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	runUnlocker.getCommunityBadgeProgress = async () => ({
+		response: {
+			quests: [108, 125, 113].map(questid => ({questid, completed: false})),
+		},
+	});
+	const runLeader = runUnlocker.createCommunityLeader({forceAddFriend: true, log: () => null});
+	const calls = [];
+	['AddItemToWishlist', 'UseEmoticonInChat', 'AddFriendToFriendsList'].forEach(name => {
+		runLeader[name] = async () => {
+			calls.push(name);
+			return true;
+		};
+	});
+	await runLeader.start();
+	assert.deepStrictEqual(calls.sort(), ['AddFriendToFriendsList', 'AddItemToWishlist', 'UseEmoticonInChat']);
+});
+
+it('start() - waits before the final progress read when quests were solved', async () => {
+	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [{questid: 108, completed: false}]}});
+	const runLeader = runUnlocker.createCommunityLeader({log: () => null});
+	runLeader.AddItemToWishlist = async () => true;
+	const startedAt = Date.now();
+	await runLeader.start();
+	assert.ok(Date.now() - startedAt >= 1900, 'expected the 2 s pause');
+});
+
+it('PlayGame() - steam-user license request failure does not hang', async () => {
+	const steamUser = new SteamUserMock();
+	steamUser.requestFreeLicense = () => Promise.reject(new Error('RateLimitExceeded'));
+	const playLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({steamUser, playSeconds: 0.001});
+	assert.strictEqual(await settleOrTimeout(playLeader.PlayGame()), true);
+});
+
+it('UseEmoticonInChat() - steam-user send failure does not hang', async () => {
+	const steamUser = new SteamUserMock();
+	steamUser.chat.sendFriendMessage = () => Promise.reject(new Error('NotFriends'));
+	const chatLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({steamUser, friendSteamId: '76000000000000001'});
+	assert.strictEqual(await settleOrTimeout(chatLeader.UseEmoticonInChat()), false);
+});
+
+it('friend quests - resolve without a friend', async () => {
+	const community = new SteamCommunityMock();
+	const throwOnMissingFriend = (steamId) => {
+		if (!steamId) {
+			throw new TypeError('Cannot read properties of null');
+		}
+	};
+	['addFriend', 'removeFriend', 'postUserComment'].forEach(name => community[name] = throwOnMissingFriend);
+	const steamUser = new SteamUserMock();
+	steamUser.chat.sendFriendMessage = throwOnMissingFriend;
+	const lonelyLeader = new SteamBadgeUnlocker(community).createCommunityLeader({steamUser, forceRemoveFriend: true});
+	assert.strictEqual(await settleOrTimeout(lonelyLeader.AddFriendToFriendsList().catch(e => e.message)), false);
+	assert.strictEqual(await settleOrTimeout(lonelyLeader.PostCommentOnFriendsPage().catch(e => e.message)), false);
+	assert.strictEqual(await settleOrTimeout(lonelyLeader.UseEmoticonInChat().catch(e => e.message)), false);
+	assert.strictEqual(await settleOrTimeout(lonelyLeader.finish().catch(e => e.message)), true);
+});
+
+it('steam-user methods - non-promise return values do not hang', async () => {
+	const steamUser = new SteamUserMock();
+	steamUser.requestFreeLicense = () => undefined;
+	steamUser.chat.sendFriendMessage = () => undefined;
+	const syncLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({steamUser, playSeconds: 0.001, friendSteamId: '76000000000000001'});
+	assert.strictEqual(await settleOrTimeout(syncLeader.PlayGame()), true);
+	assert.strictEqual(await settleOrTimeout(syncLeader.UseEmoticonInChat()), false);
+});
+
+it('start() - a throwing quest is logged and the run continues', async () => {
+	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	runUnlocker.getCommunityBadgeProgress = async () => ({
+		response: {quests: [101, 108].map(questid => ({questid, completed: false}))},
+	});
+	const logs = [];
+	const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
+	runLeader.JoinGroup = async () => {
+		throw new Error('boom');
+	};
+	let wishlistCalled = false;
+	runLeader.AddItemToWishlist = async () => {
+		wishlistCalled = true;
+		return true;
+	};
+	await runLeader.start();
+	assert.ok(wishlistCalled, 'AddItemToWishlist after the failing quest');
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['JoinGroup', 'boom'], ['AddItemToWishlist', 'OK']]);
+});
+
+it('start() - logs the code of a failed quest instead of its message', async () => {
+	const runUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [{questid: 101, completed: false}]}});
+	const logs = [];
+	const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
+	runLeader.JoinGroup = async () => {
+		throw Object.assign(new Error('HTTP error 429'), {code: 429});
+	};
+	await runLeader.start();
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['JoinGroup', 429]]);
+});
+
+it('UseEmoticonInChat() - without steamUser, the webchat logon is not started', async () => {
+	const community = new SteamCommunityMock();
+	let chatLogons = 0;
+	community.chatLogon = () => chatLogons++;
+	const chatLeader = new SteamBadgeUnlocker(community).createCommunityLeader({friendSteamId: '76000000000000001', steamUser: null});
+	assert.strictEqual(await settleOrTimeout(chatLeader.UseEmoticonInChat()), false);
+	assert.strictEqual(chatLogons, 0);
+});
+
+it('PostVideo() - keeps a video that was on the profile before', async () => {
+	const videoUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const deleted = [];
+	videoUnlocker.deleteSharedFile = async (fileId) => deleted.push(fileId);
+	const videoLeader = videoUnlocker.createCommunityLeader({youtubeCookies: leader.options.youtubeCookies, youtubeId: 'test'});
+	await settleOrTimeout(videoLeader.PostVideo());
+	assert.deepStrictEqual(deleted, []);
+});
+
+it('PostVideo() - deletes only the video it added', async () => {
+	const videoUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const pages = [[{youtubeId: 'test', fileId: '1'}], [{youtubeId: 'test', fileId: '1'}, {youtubeId: 'test', fileId: '2'}]];
+	videoUnlocker.getProfileVideos = async () => pages.shift();
+	const deleted = [];
+	videoUnlocker.deleteSharedFile = async (fileId) => deleted.push(fileId);
+	const videoLeader = videoUnlocker.createCommunityLeader({youtubeCookies: leader.options.youtubeCookies, youtubeId: 'test'});
+	assert.strictEqual(await settleOrTimeout(videoLeader.PostVideo()), true);
+	assert.deepStrictEqual(deleted, ['2']);
+});
+
+it('PostVideo() - does not post without the list of videos shared before', async () => {
+	const videoUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	videoUnlocker.getProfileVideos = () => Promise.reject(Object.assign(new Error('HTTP error 429'), {code: 429}));
+	let posted = false;
+	videoUnlocker.postYoutubeVideo = async () => {
+		posted = true;
+		return 1;
+	};
+	const videoLeader = videoUnlocker.createCommunityLeader({youtubeCookies: leader.options.youtubeCookies, youtubeId: 'test'});
+	assert.strictEqual(await settleOrTimeout(videoLeader.PostVideo()), false);
+	assert.strictEqual(posted, false);
+});
+
+it('init() - a failed master screenshot request is not cached', async () => {
+	let requests = 0;
+	const master = {
+		steamID: '76000000000000009',
+		httpRequestGet: (params, callback) => ++requests === 1
+			? callback(Object.assign(new Error('HTTP error 429'), {code: 429}))
+			: callback(null, {statusCode: 200}, '<div data-publishedfileid="4200"></div>'),
+	};
+	const first = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({masterInstance: master, log: () => null});
+	await first.init();
+	const second = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({masterInstance: master, log: () => null});
+	await second.init();
+	assert.strictEqual(first.options.friendsScreenshotFileId, null);
+	assert.strictEqual(second.options.friendsScreenshotFileId, '4200');
+});
