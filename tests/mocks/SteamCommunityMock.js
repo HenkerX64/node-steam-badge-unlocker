@@ -87,6 +87,12 @@ function SteamCommunityMock(options = {}) {
 					return callback(null, response, getHtmlPageFixture('videos_link_youtube'));
 				}
 				return callback(null, response, getHtmlPageFixture('videos_add'));
+			case 'https://steamcommunity.com/id/test/videosactions/add':
+			case 'https://steamcommunity.com/profiles/76000000000000000/videosactions/add':
+				if (this._cookies.filter(cookie => cookie.match(/youtube_accesstoken=.*access_token/)).length === 0) {
+					return callback(null, response, getHtmlPageFixture('videos_link_youtube'));
+				}
+				return callback(null, response, getHtmlPageFixture('videos') + params.form.videos.map((id, i) => `<div class="video_item"><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=${1700000000 + i}"><img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg"></a></div>`).join(''));
 			case 'https://steamcommunity.com/id/test/videos/':
 			case 'https://steamcommunity.com/profiles/76000000000000000/videos/':
 				return callback(null, response, getHtmlPageFixture('videos'));

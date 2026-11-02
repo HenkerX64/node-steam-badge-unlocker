@@ -146,7 +146,6 @@ SteamBadgeUnlocker.prototype.deleteSharedFile = function (fileId, appId = 0, fil
 				l: this.getLanguage(),
 			},
 			followAllRedirects: true,
-			followOriginalHttpMethod: true,
 			form: {
 				id: fileId,
 				appid: appId,

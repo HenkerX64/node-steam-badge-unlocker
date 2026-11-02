@@ -76,6 +76,22 @@ it('deleteSharedFileComment() - response without comments_html', async () => {
 		assert.strictEqual(result, 'UNKNOWN_COMMENT_DELETE');
 	}
 });
+it('deleteSharedFile() - follows the redirect with GET', async () => {
+	const community = _badgeUnlocker.getCommunity();
+	const sent = [];
+	const httpRequest = community.httpRequest;
+	community.httpRequest = (params, callback) => {
+		sent.push(params);
+		callback(null, {statusCode: 200}, '<html lang="en"></html>');
+	};
+	try {
+		await _badgeUnlocker.deleteSharedFile('1000', 0, 'videos');
+	} finally {
+		community.httpRequest = httpRequest;
+	}
+	assert.strictEqual(sent[0].followAllRedirects, true);
+	assert.notStrictEqual(sent[0].followOriginalHttpMethod, true);
+});
 it('postSharedFileComment() - success without comments_html', async () => {
 	_badgeUnlocker.getCommunity().setResultStack([[null, null, {success: true}]]);
 	const result = await Promise.race([

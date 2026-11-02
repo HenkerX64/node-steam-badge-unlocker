@@ -5,6 +5,26 @@ const {createError} = require('./helpers');
 
 /** @typedef {{fileId: string, youtubeId: string}} ProfileVideos */
 /**
+ * @param {string} html
+ * @returns {Array<ProfileVideos>}
+ */
+function parseProfileVideos(html) {
+	const result = [];
+	const pattern = /"video_item"(.|\n)*?<a.*?filedetails\/\?id=([0-9]+)"(.|\n)*?src="[^"]+\/vi\/([^/]+)\/(.|\n)*?<\/a>/;
+	const videoItemsMatches = html.match(new RegExp(pattern, 'g'));
+	if (videoItemsMatches && videoItemsMatches.length > 0) {
+		for (let item of videoItemsMatches) {
+			const linkSplit = item.match(pattern);
+			result.push({
+				fileId: linkSplit[2],
+				youtubeId: linkSplit[4],
+			})
+		}
+	}
+	return result;
+}
+
+/**
  * Get already shared videos from current steam profile.
  *
  * @param {{qs: Object}} params
@@ -29,20 +49,7 @@ SteamBadgeUnlocker.prototype.getProfileVideos = function (params = {}) {
 				'Referer': `${this.getProfileUrl()}/videos/`,
 			}
 		}).then(html => {
-			const result = [];
-			const pattern = /"video_item"(.|\n)*?<a.*?filedetails\/\?id=([0-9]+)"(.|\n)*?src="[^"]+\/vi\/([^/]+)\/(.|\n)*?<\/a>/;
-			const videoItemsMatches = html.match(new RegExp(pattern, 'g'));
-			if (videoItemsMatches && videoItemsMatches.length > 0) {
-				for (let item of videoItemsMatches) {
-					const linkSplit = item.match(pattern);
-					result.push({
-						fileId: linkSplit[2],
-						youtubeId: linkSplit[4],
-					})
-				}
-			}
-			resolve(result);
-
+			resolve(parseProfileVideos(html));
 		}, (e) => reject(e));
 	});
 }
@@ -94,18 +101,18 @@ SteamBadgeUnlocker.prototype.fetchYoutubeVideos = function () {
  * @returns {Promise<number>}
  */
 SteamBadgeUnlocker.prototype.postYoutubeVideo = function (youtubeIds, appId = 0, otherAssoc = '') {
+	const videoIds = typeof youtubeIds === 'string' ? [youtubeIds] : youtubeIds;
 	return new Promise((resolve, reject) => {
 		this.post({
-			url: `${this.getProfileUrl()}/videos/add/`,
+			url: `${this.getProfileUrl()}/videosactions/add`,
 			qs: {
 				l: 'english',
 			},
 			followAllRedirects: true,
-			followOriginalHttpMethod: true,
 			form: {
 				action: 'add',
 				sessionid: this.getSessionId(),
-				videos: typeof youtubeIds === 'string' ? [youtubeIds] : youtubeIds,
+				videos: videoIds,
 				app_assoc: appId,
 				other_assoc: otherAssoc,
 			},
@@ -125,9 +132,8 @@ SteamBadgeUnlocker.prototype.postYoutubeVideo = function (youtubeIds, appId = 0,
 				reject(createError(EErrorCode.INVALID_YOUTUBE_ACCESS_TOKEN));
 				return;
 			}
-
-			resolve(0);
-
+			const sharedIds = parseProfileVideos(html).map(video => video.youtubeId);
+			resolve(videoIds.filter(id => sharedIds.indexOf(id) !== -1).length);
 		}, (e) => reject(e));
 	});
 }
@@ -138,7 +144,7 @@ SteamBadgeUnlocker.prototype.postYoutubeVideo = function (youtubeIds, appId = 0,
  * @see https://steamcommunity.com/my/videos/link
  */
 SteamBadgeUnlocker.prototype.setYoutubeCookies = function (cookies) {
-	if (!cookies || !cookies.accessToken || !cookies.authAccount || !cookies.refreshToken) {
+	if (!cookies || !cookies.accessToken) {
 		throw createError(EErrorCode.MISSING_YOUTUBE_ACCESS_TOKEN);
 	}
 	const cookieStrings = [

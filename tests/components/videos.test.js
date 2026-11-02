@@ -52,3 +52,39 @@ it('fetchYoutubeVideos() - with cookies', async () => {
 	assert.strictEqual(result.length, 1);
 	assert.strictEqual(result[0].youtubeId, 'test2');
 });
+it('setYoutubeCookies() - access token only', () => {
+	_badgeUnlocker.setYoutubeCookies({accessToken: youtubeCookies.accessToken});
+	const _communityMock = _badgeUnlocker.getCommunity();
+	assert.strictEqual(_communityMock._cookies.length, 1);
+	assert.strictEqual(_communityMock._cookies.filter(cookie => cookie.match(/youtube_accesstoken=.*access_token/)).length, 1);
+	_communityMock.setCookies([]);
+});
+it('postYoutubeVideo() - posts to the videosactions form and reads the videos page', async () => {
+	const unlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const community = unlocker.getCommunity();
+	const posted = [];
+	const httpRequest = community.httpRequest;
+	community.httpRequest = (params, callback) => {
+		posted.push(params);
+		callback(null, {statusCode: 200}, '<div class="video_item"><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1700000000"><img src="https://i.ytimg.com/vi/test/mqdefault.jpg"></a></div>');
+	};
+	unlocker.setYoutubeCookies(youtubeCookies);
+	assert.strictEqual(await unlocker.postYoutubeVideo('test'), 1);
+	assert.strictEqual(await unlocker.postYoutubeVideo('missing'), 0);
+	community.httpRequest = httpRequest;
+	assert.strictEqual(posted[0].url, 'https://steamcommunity.com/profiles/76000000000000000/videosactions/add');
+	assert.notStrictEqual(posted[0].followOriginalHttpMethod, true);
+});
+it('postYoutubeVideo() - the add page after a failed post counts nothing', async () => {
+	const unlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const community = unlocker.getCommunity();
+	const addPage = require('fs').readFileSync(__dirname + '/../fixtures/pages/videos_add.html', 'utf8').replace(/<div id="results_box">[^<]*<\/div>/, '');
+	const httpRequest = community.httpRequest;
+	community.httpRequest = (params, callback) => callback(null, {statusCode: 200}, addPage);
+	unlocker.setYoutubeCookies(youtubeCookies);
+	try {
+		assert.strictEqual(await unlocker.postYoutubeVideo('test2'), 0);
+	} finally {
+		community.httpRequest = httpRequest;
+	}
+});
