@@ -16,6 +16,52 @@ exports.delay = seconds => {
  */
 exports.createError = (code, message = code) => Object.assign(new Error(message), {code});
 
+const previousOfFinishedHook = new WeakMap();
+
+/**
+ * @param {Function} [hook]
+ * @returns {Function|undefined}
+ */
+function skipFinishedHooks(hook) {
+	while (previousOfFinishedHook.has(hook)) {
+		hook = previousOfFinishedHook.get(hook);
+	}
+	return hook;
+}
+
+/**
+ * @template T
+ * @param {SteamCommunity} community
+ * @param {function(Object): void} editOptions
+ * @param {function(): Promise<T>} run
+ * @returns {Promise<T>}
+ */
+exports.withRequestOptions = async (community, editOptions, run) => {
+	const previous = community.onPreHttpRequest;
+	let editing = true;
+	const hook = function (requestId, source, options, continueRequest) {
+		if (editing) {
+			editOptions(options);
+		}
+		return previous ? previous.call(this, requestId, source, options, continueRequest) : false;
+	};
+	community.onPreHttpRequest = hook;
+	try {
+		return await run();
+	} finally {
+		editing = false;
+		previousOfFinishedHook.set(hook, previous);
+		if (community.onPreHttpRequest === hook) {
+			const restored = skipFinishedHooks(previous);
+			if (restored) {
+				community.onPreHttpRequest = restored;
+			} else {
+				delete community.onPreHttpRequest;
+			}
+		}
+	}
+};
+
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/global.js
  * @param {CommentActionParams} params
