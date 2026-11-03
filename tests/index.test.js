@@ -27,6 +27,10 @@ describe('helpers.js', () => {
 	require('./components/helpers.test');
 });
 
+describe('type declarations', () => {
+	require('./types.test');
+});
+
 describe('guides.js', () => {
 	require('./components/guides.test');
 });

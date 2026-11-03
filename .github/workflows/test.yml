@@ -39,5 +39,7 @@ jobs:
         run: |
           npm install
           npm run build --if-present
+      - name: Check type declarations
+        run: npm run test-types
       - name: Run node.js tests
         run: npm run test
