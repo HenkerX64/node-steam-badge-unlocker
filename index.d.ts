@@ -1,6 +1,7 @@
 import ECommunityBadgeQuestsValues = require('./resources/ECommunityBadgeQuests');
 import EErrorCodeValues = require('./resources/EErrorCode');
 import EFileTypeValues = require('./resources/EFileType');
+import EPublishedFileVisibilityValues = require('./resources/EPublishedFileVisibility');
 import ESubSectionValues = require('./resources/ESubSection');
 import Helpers = require('./components/helpers');
 
@@ -183,11 +184,12 @@ declare class SteamBadgeUnlocker {
 	/** Trending Workshop items. */
 	getWorkshopTrendLinks(params?: SteamBadgeUnlocker.ContentQueryParams): Promise<SteamBadgeUnlocker.WorkshopLink[]>;
 	/**
-	 * Uploads a screenshot (quest PostScreenshot). Rejects with `MISSING_TOKEN_FIELD`, `MISSING_WG_FIELD` or
-	 * `MISSING_FORM_ACTION` when the upload form cannot be read, `SCREENSHOT_UPLOAD_FAILED`, or the stream error of an
-	 * unreadable file.
+	 * Uploads a screenshot (quest PostScreenshot), private unless `visibility` is another
+	 * `EPublishedFileVisibility` value. Rejects with
+	 * `MISSING_TOKEN_FIELD`, `MISSING_WG_FIELD` or `MISSING_FORM_ACTION` when the upload form cannot be read,
+	 * `SCREENSHOT_UPLOAD_FAILED`, or the stream error of an unreadable file.
 	 */
-	uploadScreenshot(appId: number, title: string, description: string, file: SteamBadgeUnlocker.ReadableLike): Promise<{success: true, id: string}>;
+	uploadScreenshot(appId: number, title: string, description: string, file: SteamBadgeUnlocker.ReadableLike, visibility?: SteamBadgeUnlocker.EPublishedFileVisibility): Promise<{success: true, id: string}>;
 
 	/**
 	 * Creates the quest runner for the Community Leader badge. `options` are merged shallowly over
@@ -200,6 +202,7 @@ declare namespace SteamBadgeUnlocker {
 	export const ECommunityBadgeQuests: typeof ECommunityBadgeQuestsValues;
 	export const EErrorCode: typeof EErrorCodeValues;
 	export const EFileType: typeof EFileTypeValues;
+	export const EPublishedFileVisibility: typeof EPublishedFileVisibilityValues;
 	export const ESubSection: typeof ESubSectionValues;
 
 	export type ErrorCode = Helpers.ErrorCode;
@@ -207,6 +210,7 @@ declare namespace SteamBadgeUnlocker {
 	export type CommentActionType = Helpers.CommentActionType;
 	export type CommentActionParams = Helpers.CommentActionParams;
 	export type EFileTypeType = Extract<keyof typeof EFileTypeValues, string>;
+	export type EPublishedFileVisibility = (typeof EPublishedFileVisibilityValues)[Extract<keyof typeof EPublishedFileVisibilityValues, string>];
 	export type ESubSectionType = Extract<keyof typeof ESubSectionValues, string>;
 
 	/** The members of a `steamcommunity` instance this package uses; parameters stay open so that any version fits. */

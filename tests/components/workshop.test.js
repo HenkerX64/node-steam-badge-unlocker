@@ -43,3 +43,18 @@ it('uploadScreenshot() - closes the file when the upload fails', async () => {
 	assert.strictEqual(result, 429);
 	assert.strictEqual(file.destroyed, true);
 });
+it('uploadScreenshot() - visibility is an EPublishedFileVisibility value, private by default', async () => {
+	const community = new SteamCommunityMock();
+	const sentVisibility = [];
+	const httpRequest = community.httpRequest;
+	community.httpRequest = (params, callback, source) => {
+		if (params.formData) {
+			sentVisibility.push(params.formData.visibility);
+		}
+		httpRequest(params, callback, source);
+	};
+	const unlocker = new SteamBadgeUnlocker(community);
+	await unlocker.uploadScreenshot(767, 'title', '', null);
+	await unlocker.uploadScreenshot(767, 'title', '', null, SteamBadgeUnlocker.EPublishedFileVisibility.Public);
+	assert.deepStrictEqual(sentVisibility, [2, 0]);
+});

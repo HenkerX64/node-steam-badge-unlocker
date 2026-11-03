@@ -29,8 +29,13 @@ const withHeaders: Promise<number> = withMissingRequiredHeaders(community, async
 const withOptions: Promise<string> = withRequestOptions(community, (options) => {
 	options.headers = Object.assign({}, options.headers);
 }, async () => 'done');
+declare const screenshot: SteamBadgeUnlocker.ReadableLike;
+const publicUpload: Promise<{success: true, id: string}> = unlocker.uploadScreenshot(767, 'title', '', screenshot, SteamBadgeUnlocker.EPublishedFileVisibility.Public);
+// @ts-expect-error a number that is not an EPublishedFileVisibility value
+const idUpload = unlocker.uploadScreenshot(767, 'title', '', screenshot, 5);
+const privateId: SteamBadgeUnlocker.EPublishedFileVisibility = SteamBadgeUnlocker.EPublishedFileVisibility.Private;
 const accountParams: number[] = parseConfigString('user;password1;').map(account => account.params.length);
 // @ts-expect-error a code that is not in EErrorCode
 const unknownCode: SteamBadgeUnlocker.ErrorCode = 'UNKNOWN_CODE';
 
-export {runQuests, defaultExport, skipCode, fileIdCode, questName, joinGroupId, playSeconds, withHeaders, withOptions, accountParams, unknownCode};
+export {runQuests, defaultExport, skipCode, fileIdCode, questName, joinGroupId, playSeconds, withHeaders, withOptions, publicUpload, idUpload, privateId, accountParams, unknownCode};

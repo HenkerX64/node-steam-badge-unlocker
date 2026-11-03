@@ -74,7 +74,7 @@ SteamBadgeUnlocker.prototype._getUgcUploadForm = async function (appId = 767, ty
 			file_type: fileType,
 			image_width: 0,
 			image_height: 0,
-			visibility: 2, // 0=Public, 1=Friends, 2=Private, 3=Unlisted
+			visibility: SteamBadgeUnlocker.EPublishedFileVisibility.Private,
 			agree_terms: 'on',
 			title: '',
 			description: '',
@@ -108,9 +108,10 @@ function closeFile(file) {
  * @param {string} title
  * @param {string} description
  * @param {fs.ReadStream} file
+ * @param {EPublishedFileVisibility} visibility
  * @returns {Promise<{success: true, id: string}>}
  */
-SteamBadgeUnlocker.prototype.uploadScreenshot = async function (appId, title, description, file) {
+SteamBadgeUnlocker.prototype.uploadScreenshot = async function (appId, title, description, file, visibility = SteamBadgeUnlocker.EPublishedFileVisibility.Private) {
 	const fileError = firstStreamError(file);
 	try {
 		const form = await Promise.race([this._getUgcUploadForm(appId, 'screenshots'), fileError]);
@@ -120,6 +121,7 @@ SteamBadgeUnlocker.prototype.uploadScreenshot = async function (appId, title, de
 				...form.params,
 				title,
 				description,
+				visibility,
 				file: [file],
 			},
 			followAllRedirects: true,
