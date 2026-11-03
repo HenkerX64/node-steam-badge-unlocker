@@ -39,6 +39,19 @@ it('getWebApiKey()', async () => {
 	const tempObj = new SteamBadgeUnlocker(new SteamCommunityMock(), {apiKey: 'ABC'});
 	assert.strictEqual('ABC', await tempObj.getWebApiKey(), 'use apiKey in constructor');
 });
+it('getWebApiKey() - the dev/apikey request sends Accept-Language', async () => {
+	const community = new SteamCommunityMock();
+	const acceptLanguages = [];
+	community.getWebApiKey = (domain, callback) => {
+		const options = {};
+		community.onPreHttpRequest(1, 'steamcommunity', options, () => null);
+		acceptLanguages.push(options.headers['Accept-Language']);
+		callback(null, 'KEY');
+	};
+	assert.strictEqual(await new SteamBadgeUnlocker(community).getWebApiKey(), 'KEY');
+	assert.deepStrictEqual(acceptLanguages, ['en-US,en;q=0.9']);
+	assert.ok(!('onPreHttpRequest' in community));
+});
 it('getWebApiToken()', async () => {
 	assert.strictEqual(typeof _badgeUnlocker.getWebApiToken, 'function', 'exists');
 	assert.strictEqual(

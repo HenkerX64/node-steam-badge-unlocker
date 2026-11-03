@@ -60,6 +60,8 @@ module.exports = {
 	/** @type {string} */
 	realName: 'John',
 	resetRealName: true,
+	/** @type {number} */
+	resetRealNameAfterSeconds: 5,
 
 	/**
 	 * @type {number}

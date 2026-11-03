@@ -84,3 +84,16 @@ it('getLastFriendPosts() - response without blotter_html', async () => {
 	]);
 	assert.deepStrictEqual(result, []);
 });
+it('setRealName() - editProfile with the name, its requests send Accept-Language', async () => {
+	const community = new SteamCommunityMock();
+	const calls = [];
+	community.editProfile = (settings, callback) => {
+		const options = {};
+		community.onPreHttpRequest(1, 'steamcommunity', options, () => null);
+		calls.push([settings, options.headers['Accept-Language']]);
+		callback(null);
+	};
+	assert.strictEqual(await new SteamBadgeUnlocker(community).setRealName('John'), true);
+	assert.deepStrictEqual(calls, [[{realName: 'John'}, 'en-US,en;q=0.9']]);
+	assert.ok(!('onPreHttpRequest' in community));
+});

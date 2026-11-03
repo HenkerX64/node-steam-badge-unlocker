@@ -1,7 +1,7 @@
 const SteamBadgeUnlocker = require('../index');
 
 const SteamCommunityHelpers = require('steamcommunity/components/helpers');
-const {getActionUrl} = require("./helpers");
+const {getActionUrl, withMissingRequiredHeaders} = require("./helpers");
 
 /**
  * @param {number} appId
@@ -62,6 +62,18 @@ SteamBadgeUnlocker.prototype.getOwnedProfileItems = async function () {
 		},
 		json: true,
 	});
+}
+
+/**
+ * Sets the real name with steamcommunity's `editProfile`; its requests send the Accept-Language header Steam requires.
+ * @param {string} realName
+ * @returns {Promise<true>}
+ */
+SteamBadgeUnlocker.prototype.setRealName = function (realName) {
+	const community = this.getCommunity();
+	return withMissingRequiredHeaders(community, () => new Promise((resolve, reject) => {
+		community.editProfile({realName}, error => error ? reject(error) : resolve(true));
+	}));
 }
 
 /**

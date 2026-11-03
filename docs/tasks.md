@@ -20,7 +20,7 @@ on Steam).
 | 108 | AddItemToWishlist | `addToWishlist(wishlistAppId)`, then `removeFromWishlist` | — | nothing |
 | 109 | PostCommentOnFriendsScreenshot | `postSharedFileComment` on `friendsScreenshotFileId`, then `deleteSharedFileComment` | full account; friend with a public screenshot | nothing |
 | 110 | SetupCommunityAvatar | `selectAvatar(avatarAppId, avatarIndex)` selects an official game avatar | — | the avatar |
-| 111 | SetupCommunityRealName | `steamcommunity.editProfile({realName})`, then again with `''` when `resetRealName` (default); both requests send the `Accept-Language` header, without which Steam can answer HTTP 429 | — | nothing |
+| 111 | SetupCommunityRealName | `setRealName(realName)` (`steamcommunity.editProfile({realName})`), then again with `''` after `resetRealNameAfterSeconds` when `resetRealName` (default); both requests send the `Accept-Language` header, without which Steam can answer HTTP 429 | — | nothing |
 | 112 | PlayGame | `steamUser.requestFreeLicense([playAppId])`, `gamesPlayed` for `playSeconds`, then stops; a game that another session of the account plays is stopped | `steamUser` | the free license |
 | 113 | AddFriendToFriendsList | the master sends a friend request first, then `steamcommunity.addFriend(friendSteamId)` | friend; without a master the friend has to accept, and a limited account needs a master (it cannot send invites) | the friend, unless `forceRemoveFriend` |
 | 114 | RateWorkshopItem | `voteSharedFile(workshopFileId)` | full account without VAC ban | the vote |

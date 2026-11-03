@@ -5,7 +5,7 @@ SteamBadgeUnlocker.EFileType = require('./resources/EFileType');
 SteamBadgeUnlocker.EPublishedFileVisibility = require('./resources/EPublishedFileVisibility');
 SteamBadgeUnlocker.ESubSection = require('./resources/ESubSection');
 SteamBadgeUnlocker.EErrorCode = require('./resources/EErrorCode');
-const {createError} = require('./components/helpers');
+const {createError, withMissingRequiredHeaders} = require('./components/helpers');
 
 /**
  * @param {SteamCommunity} SteamCommunity
@@ -95,9 +95,9 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 			return this._apiKey;
 		}
 		this._apiKey = '';
-		this._apiKey = await new Promise((resolve, reject) => {
+		this._apiKey = await withMissingRequiredHeaders(this._community, () => new Promise((resolve, reject) => {
 			this._community.getWebApiKey('localhost', (error, apiKey) => error ? reject(error) : resolve(apiKey));
-		});
+		}));
 		return this._apiKey;
 	}
 

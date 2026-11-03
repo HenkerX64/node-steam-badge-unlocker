@@ -566,15 +566,14 @@ CCommunityLeader.prototype.SetupCommunityAvatar = function () {
  * Edit your community profile to set a real name. Any name will work, but setting your real name will help your friends know who you are.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.SetupCommunityRealName = function () {
-	return withMissingRequiredHeaders(this._community, async () => {
-		await callbackCall(this._community, 'editProfile', {realName: this.options.realName});
-		if (!this.options.resetRealName) {
-			return true;
-		}
-		await callbackCall(this._community, 'editProfile', {realName: ''}).catch(() => null);
+CCommunityLeader.prototype.SetupCommunityRealName = async function () {
+	await this._badgeUnlocker.setRealName(this.options.realName);
+	if (!this.options.resetRealName) {
 		return true;
-	});
+	}
+	await delay(this.options.resetRealNameAfterSeconds);
+	await this._badgeUnlocker.setRealName('').catch(() => null);
+	return true;
 }
 
 /**

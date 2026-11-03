@@ -43,7 +43,8 @@ import Helpers = require('./components/helpers');
  *   with steamcommunity 3.43–3.47 `getWebApiKey` registers a Web API key for `localhost` when the account has none;
  * - you need the market, phone, two-factor or Steam Guard quests or Trade: they are not automated;
  * - the `steamcommunity` instance must stay untouched: PostVideo and the wishlist set cookies on it, and while
- *   SetupCommunityRealName runs every request of the instance gets the `Accept-Language` header.
+ *   `getWebApiKey` or `setRealName` (SetupCommunityRealName) runs every request of the instance gets the
+ *   `Accept-Language` header.
  *
  * Everything declared in these `.d.ts` files is public API under semver, also the helpers of
  * `require('steam-badge-unlocker/components/helpers')` and the enums of `resources/`; the exceptions are
@@ -88,6 +89,7 @@ declare class SteamBadgeUnlocker {
 	 * Web API key of the account through `steamcommunity.getWebApiKey('localhost')`, read once. steamcommunity 3.48
 	 * and later only read an existing key; 3.43–3.47 register one for `localhost` when the account has none. The
 	 * first call rejects with the steamcommunity error when there is no key; later calls resolve `''`.
+	 * Its request sends `Accept-Language`.
 	 */
 	getWebApiKey(): Promise<string>;
 	/** Store `webapi_token` from the points shop page, read once. The first call rejects with `NOT_FOUND_WEBAPI_TOKEN` when the page fails to load or has none; later calls resolve `''`. */
@@ -125,6 +127,8 @@ declare class SteamBadgeUnlocker {
 	/** Trending guides. */
 	getGuidesTrendLinks(params?: SteamBadgeUnlocker.ContentQueryParams): Promise<SteamBadgeUnlocker.GuideLink[]>;
 
+	/** Sets the real name with `steamcommunity`'s `editProfile` (quest SetupCommunityRealName); its requests send `Accept-Language`. */
+	setRealName(realName: string): Promise<true>;
 	/** Selects an official game avatar (quest SetupCommunityAvatar). */
 	selectAvatar(appId: number, selectedAvatar?: number): Promise<true>;
 	/** Sets a profile background through `IPlayerService` with the store `webapi_token` (quest SetProfileBackground). */
@@ -307,8 +311,10 @@ declare namespace SteamBadgeUnlocker {
 		discussionsKeyword: string;
 		/** SetupCommunityRealName: name to set. Default: `"John"`. */
 		realName: string;
-		/** SetupCommunityRealName: clear the name again right away. Default: `true`. */
+		/** SetupCommunityRealName: clear the name again after `resetRealNameAfterSeconds`. Default: `true`. */
 		resetRealName: boolean;
+		/** SetupCommunityRealName: seconds between setting and clearing the name. Default: `5`. */
+		resetRealNameAfterSeconds: number;
 		/** SetupCommunityAvatar: app of the official avatar. Default: `582660`. */
 		avatarAppId: number;
 		/** SetupCommunityAvatar: index of the avatar in the app's avatar list. Default: `4`. */
@@ -415,7 +421,7 @@ declare namespace SteamBadgeUnlocker {
 		PostCommentOnFriendsScreenshot(): Promise<boolean>;
 		/** Quest 110: selects avatar `avatarIndex` of `avatarAppId`; the avatar stays. */
 		SetupCommunityAvatar(): Promise<boolean>;
-		/** Quest 111: sets `realName` and clears it again with `resetRealName`; the requests send `Accept-Language`. */
+		/** Quest 111: sets `realName` with `setRealName` and, with `resetRealName`, clears it again after `resetRealNameAfterSeconds`; the requests send `Accept-Language`. */
 		SetupCommunityRealName(): Promise<boolean>;
 		/** Quest 112: requests a free license of `playAppId` (it stays), plays it for `playSeconds` and stops; a game that another session of the account plays is stopped; skipped without `steamUser`. */
 		PlayGame(): Promise<boolean>;

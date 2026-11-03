@@ -15,6 +15,7 @@ const leader = _badgeUnlocker.createCommunityLeader({
 	joinGroupId: '1000',
 	masterInstance: null,
 	playSeconds: 0.001,
+	resetRealNameAfterSeconds: 0.001,
 	steamUser: new SteamUserMock(),
 	youtubeCookies: {
 		accessToken: '%7B%22access_token%22%3A%22ya29.test-EURtest_test-test%22%2C%22expires_in%22%3A3599%2C%22scope%22%3A%22https%3A%5C%2F%5C%2Fwww.googleapis.com%5C%2Fauth%5C%2Fyoutube.readonly%22%2C%22token_type%22%3A%22Bearer%22%2C%22created%22%3A1645751827%7D',
@@ -376,8 +377,21 @@ it('SetupCommunityRealName() - editProfile requests send the Accept-Language hea
 		acceptLanguages.push(options.headers['Accept-Language']);
 		callback(null);
 	};
-	const realNameLeader = new SteamBadgeUnlocker(community).createCommunityLeader({});
+	const realNameLeader = new SteamBadgeUnlocker(community).createCommunityLeader({resetRealNameAfterSeconds: 0.001});
 	assert.strictEqual(await realNameLeader.SetupCommunityRealName(), true);
 	assert.deepStrictEqual(acceptLanguages, ['en-US,en;q=0.9', 'en-US,en;q=0.9']);
 	assert.ok(!('onPreHttpRequest' in community));
+});
+
+it('SetupCommunityRealName() - waits resetRealNameAfterSeconds before clearing the name', async () => {
+	const nameUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const edits = [];
+	nameUnlocker.setRealName = async (realName) => {
+		edits.push([realName, Date.now()]);
+		return true;
+	};
+	const nameLeader = nameUnlocker.createCommunityLeader({resetRealNameAfterSeconds: 0.2});
+	assert.strictEqual(await nameLeader.SetupCommunityRealName(), true);
+	assert.deepStrictEqual(edits.map(([name]) => name), ['John', '']);
+	assert.ok(edits[1][1] - edits[0][1] >= 190, 'reset waits ' + (edits[1][1] - edits[0][1]) + ' ms');
 });
