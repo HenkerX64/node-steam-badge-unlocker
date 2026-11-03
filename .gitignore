@@ -61,3 +61,9 @@ atlassian-ide-plugin.xml
 # Cursive Clojure plugin
 .idea/replstate.xml
 package-lock.json
+
+# Local example scripts and account files
+examples/*
+!examples/run-community-leader.js
+!examples/utils/
+!examples/the-steam-awards-module.js

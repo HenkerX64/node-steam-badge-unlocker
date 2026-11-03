@@ -8,6 +8,9 @@
     "classes/",
     "components/",
     "resources/",
+    "examples/run-community-leader.js",
+    "examples/utils/login-accounts.js",
+    "examples/the-steam-awards-module.js",
     "index.js"
   ],
   "repository": {
