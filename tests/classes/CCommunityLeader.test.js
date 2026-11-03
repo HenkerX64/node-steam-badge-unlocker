@@ -366,3 +366,18 @@ it('getLastError() - a rejection without an Error leaves null', async () => {
 	assert.strictEqual(await chatLeader.UseEmoticonInChat(), false);
 	assert.strictEqual(chatLeader.getLastError(), null);
 });
+
+it('SetupCommunityRealName() - editProfile requests send the Accept-Language header', async () => {
+	const community = new SteamCommunityMock();
+	const acceptLanguages = [];
+	community.editProfile = (settings, callback) => {
+		const options = {};
+		community.onPreHttpRequest(1, 'steamcommunity', options, () => null);
+		acceptLanguages.push(options.headers['Accept-Language']);
+		callback(null);
+	};
+	const realNameLeader = new SteamBadgeUnlocker(community).createCommunityLeader({});
+	assert.strictEqual(await realNameLeader.SetupCommunityRealName(), true);
+	assert.deepStrictEqual(acceptLanguages, ['en-US,en;q=0.9', 'en-US,en;q=0.9']);
+	assert.ok(!('onPreHttpRequest' in community));
+});

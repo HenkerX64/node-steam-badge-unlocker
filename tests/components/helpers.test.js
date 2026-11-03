@@ -128,3 +128,38 @@ it('withRequestOptions() - keeps a hook installed while run is pending', async (
 	});
 	assert.strictEqual(community.onPreHttpRequest, replacement);
 });
+
+it('withMissingRequiredHeaders() - adds the headers Steam requires unless the request sets them', async () => {
+	const community = {};
+	const plain = {};
+	const own = {headers: {'Accept-Language': 'de-DE'}};
+	await Helpers.withMissingRequiredHeaders(community, async () => {
+		community.onPreHttpRequest(1, 'steamcommunity', plain, () => null);
+		community.onPreHttpRequest(2, 'steamcommunity', own, () => null);
+	});
+	assert.deepStrictEqual(plain.headers, {'Accept-Language': 'en-US,en;q=0.9'});
+	assert.deepStrictEqual(own.headers, {'Accept-Language': 'de-DE'});
+	assert.ok(!('onPreHttpRequest' in community));
+});
+
+it('withMissingRequiredHeaders() - keeps a required header the request sets in any letter case and its other headers', async () => {
+	const community = {};
+	const headers = {'accept-language': 'de-DE', origin: 'https://steamcommunity.com'};
+	const lowercase = {headers};
+	await Helpers.withMissingRequiredHeaders(community, async () => {
+		community.onPreHttpRequest(1, 'steamcommunity', lowercase, () => null);
+	});
+	assert.deepStrictEqual(lowercase.headers, {'accept-language': 'de-DE', origin: 'https://steamcommunity.com'});
+	assert.deepStrictEqual(headers, {'accept-language': 'de-DE', origin: 'https://steamcommunity.com'});
+});
+
+it('withMissingRequiredHeaders() - adds a missing required header next to the other headers without changing the caller\'s headers object', async () => {
+	const community = {};
+	const headers = {origin: 'https://steamcommunity.com'};
+	const post = {headers};
+	await Helpers.withMissingRequiredHeaders(community, async () => {
+		community.onPreHttpRequest(1, 'steamcommunity', post, () => null);
+	});
+	assert.deepStrictEqual(post.headers, {origin: 'https://steamcommunity.com', 'Accept-Language': 'en-US,en;q=0.9'});
+	assert.deepStrictEqual(headers, {origin: 'https://steamcommunity.com'});
+});

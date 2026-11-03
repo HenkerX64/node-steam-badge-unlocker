@@ -62,6 +62,22 @@ exports.withRequestOptions = async (community, editOptions, run) => {
 	}
 };
 
+const MISSING_REQUIRED_HEADERS = {'Accept-Language': 'en-US,en;q=0.9'};
+
+/**
+ * @template T
+ * @param {SteamCommunity} community
+ * @param {function(): Promise<T>} run
+ * @returns {Promise<T>}
+ */
+exports.withMissingRequiredHeaders = (community, run) => exports.withRequestOptions(community, (options) => {
+	const headerNames = Object.keys(options.headers || {}).map(name => name.toLowerCase());
+	options.headers = Object.assign({}, options.headers);
+	Object.keys(MISSING_REQUIRED_HEADERS)
+		.filter(name => !headerNames.includes(name.toLowerCase()))
+		.forEach(name => options.headers[name] = MISSING_REQUIRED_HEADERS[name]);
+}, run);
+
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/global.js
  * @param {CommentActionParams} params
