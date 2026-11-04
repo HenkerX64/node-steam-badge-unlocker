@@ -580,8 +580,10 @@ CCommunityLeader.prototype.SetupCommunityRealName = async function () {
  * Visit the Steam Workshop and choose an item to subscribe to.
  * @returns {Promise<boolean>}
  */
-CCommunityLeader.prototype.SubscribeToWorkshopItem = function () {
-	return this._badgeUnlocker.subscribeToSharedFile(this.options.workshopFileId, this.options.workshopAppId);
+CCommunityLeader.prototype.SubscribeToWorkshopItem = async function () {
+	await this._badgeUnlocker.subscribeToSharedFile(this.options.workshopFileId, this.options.workshopAppId);
+	await this._badgeUnlocker.unsubscribeFromSharedFile(this.options.workshopFileId, this.options.workshopAppId).catch(() => null);
+	return true;
 }
 
 /**

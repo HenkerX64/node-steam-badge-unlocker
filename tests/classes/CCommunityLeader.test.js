@@ -395,3 +395,25 @@ it('SetupCommunityRealName() - waits resetRealNameAfterSeconds before clearing t
 	assert.deepStrictEqual(edits.map(([name]) => name), ['John', '']);
 	assert.ok(edits[1][1] - edits[0][1] >= 190, 'reset waits ' + (edits[1][1] - edits[0][1]) + ' ms');
 });
+
+it('SubscribeToWorkshopItem() - unsubscribes from the item it subscribed to', async () => {
+	const workshopUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	const calls = [];
+	workshopUnlocker.subscribeToSharedFile = async (fileId, appId) => {
+		calls.push(['subscribe', fileId, appId]);
+		return true;
+	};
+	workshopUnlocker.unsubscribeFromSharedFile = async (fileId, appId) => {
+		calls.push(['unsubscribe', fileId, appId]);
+		return true;
+	};
+	const result = await workshopUnlocker.createCommunityLeader({workshopFileId: '1000', workshopAppId: 730}).SubscribeToWorkshopItem();
+	assert.deepStrictEqual([result, calls], [true, [['subscribe', '1000', 730], ['unsubscribe', '1000', 730]]]);
+});
+
+it('SubscribeToWorkshopItem() - a failed unsubscribe keeps the result of the subscription', async () => {
+	const workshopUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
+	workshopUnlocker.subscribeToSharedFile = async () => true;
+	workshopUnlocker.unsubscribeFromSharedFile = () => Promise.reject(new Error('Too Many Requests'));
+	assert.strictEqual(await workshopUnlocker.createCommunityLeader({}).SubscribeToWorkshopItem(), true);
+});

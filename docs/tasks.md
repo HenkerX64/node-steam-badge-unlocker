@@ -27,7 +27,7 @@ on Steam).
 | 115 | SetupSteamGuard | not automated: account security stays with the owner | — | — |
 | 117 | PostStatusToFriends | `steamcommunity.postProfileStatus(statusText)`, then `deleteProfileStatus` | — | nothing |
 | 118 | RateUpContentInActivityFeed | `voteSharedFile(friendsScreenshotFileId)` and a vote on a friend post of the activity feed | friend activity, e.g. the friend's screenshot | the votes |
-| 119 | SubscribeToWorkshopItem | `subscribeToSharedFile(workshopFileId, workshopAppId)` | — | the subscription |
+| 119 | SubscribeToWorkshopItem | `subscribeToSharedFile(workshopFileId, workshopAppId)`, then `unsubscribeFromSharedFile` | — | nothing |
 | 120 | BuyOrSellOnMarket | not automated: against the [Steam Subscriber Agreement](https://store.steampowered.com/subscriber_agreement/english/#4) | — | — |
 | 121 | ViewGuideInOverlay | `getSharedFileDetails(guideFileId)` with the Steam overlay user agent | — | nothing |
 | 122 | Trade | not implemented; resolves `false` | — | — |

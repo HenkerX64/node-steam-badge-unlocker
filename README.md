@@ -22,10 +22,10 @@ Do not use it:
 - to automate account security (Steam Guard, phone, two-factor) or the Community Market: these quests
   are not automated;
 - when the accounts must not show test content: the quests post and delete a profile comment, a
-  screenshot comment, a status, a screenshot, a video and a review, add and remove a wishlist entry, join
-  and leave a group, and set and clear the real name;
+  screenshot comment, a status, a screenshot, a video and a review, add and remove a wishlist entry,
+  subscribe to and unsubscribe from a Workshop item, join and leave a group, and set and clear the real name;
 - when lasting changes are not acceptable: the avatar, the profile background, the featured badge, the
-  Workshop subscription and votes, the activity-feed votes, the chat message, the free license of the
+  Workshop votes, the activity-feed votes, the chat message, the free license of the
   played game and the friend (unless `forceRemoveFriend`) stay; crafting uses up a set of trading cards; with
   `steamcommunity` 3.43–3.47 a Web API key for `localhost` is registered when the account has none.
 

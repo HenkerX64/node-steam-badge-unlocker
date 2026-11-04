@@ -36,8 +36,9 @@ import Helpers = require('./components/helpers');
  *
  * Do not use it when
  * - the account must not show test content: the quests post and delete comments, a status, a screenshot, a video
- *   and a review, add and remove a wishlist entry, join and leave a group, and set and clear the real name;
- * - changes must not stay: the avatar, the profile background, the featured badge, the Workshop subscription and
+ *   and a review, add and remove a wishlist entry, subscribe to and unsubscribe from a Workshop item, join and leave
+ *   a group, and set and clear the real name;
+ * - changes must not stay: the avatar, the profile background, the featured badge, the Workshop
  *   vote, the votes on the friend's screenshot and feed post, the chat message, the friend (unless
  *   `forceRemoveFriend`) and the free license of `playAppId` stay; CraftGameBadge uses up a set of trading cards;
  *   with steamcommunity 3.43–3.47 `getWebApiKey` registers a Web API key for `localhost` when the account has none;
@@ -150,7 +151,7 @@ declare class SteamBadgeUnlocker {
 
 	/** Subscribes to a Workshop item (quest SubscribeToWorkshopItem). */
 	subscribeToSharedFile(fileId: string, appId: string | number): Promise<true>;
-	/** Unsubscribes from a Workshop item. */
+	/** Unsubscribes from a Workshop item (cleanup of quest SubscribeToWorkshopItem). */
 	unsubscribeFromSharedFile(fileId: string, appId: string | number): Promise<true>;
 	/** Loads a shared file page; with the overlay user agent it counts as an overlay view (quest ViewGuideInOverlay). */
 	getSharedFileDetails(fileId: string | number, params?: {qs?: Record<string, string | number>, headers?: Record<string, string>}): Promise<string>;
@@ -433,7 +434,7 @@ declare namespace SteamBadgeUnlocker {
 		PostStatusToFriends(): Promise<boolean>;
 		/** Quest 118: votes up `friendsScreenshotFileId` and a friend post of the activity feed; resolves `true` even when nothing was voted. */
 		RateUpContentInActivityFeed(): Promise<boolean>;
-		/** Quest 119: subscribes to `workshopFileId`; the subscription stays. */
+		/** Quest 119: subscribes to `workshopFileId` and unsubscribes again; a failed unsubscribe keeps the result. */
 		SubscribeToWorkshopItem(): Promise<boolean>;
 		/** Quest 121: opens `guideFileId` or a trending guide with the Steam overlay user agent. */
 		ViewGuideInOverlay(): Promise<boolean>;
