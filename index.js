@@ -14,7 +14,7 @@ const {createError} = require('./components/helpers');
  */
 function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 	// !SteamCommunity instanceof community
-	if (typeof SteamCommunity !== 'object' || typeof SteamCommunity.getSessionID !== 'function') {
+	if (!SteamCommunity || typeof SteamCommunity !== 'object' || typeof SteamCommunity.getSessionID !== 'function') {
 		throw createError(SteamBadgeUnlocker.EErrorCode.MISSING_COMMUNITY);
 	}
 

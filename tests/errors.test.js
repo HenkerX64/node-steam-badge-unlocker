@@ -9,6 +9,10 @@ const root = path.join(__dirname, '..');
 const runtimeFiles = ['index.js', 'classes/CCommunityLeader.js']
 	.concat(fs.readdirSync(path.join(root, 'components')).map(file => 'components/' + file));
 
+it('SteamBadgeUnlocker() - throws MISSING_COMMUNITY without a steamcommunity instance', () => {
+	[undefined, null, {}].forEach(community => assert.throws(() => new SteamBadgeUnlocker(community), error => error.code === EErrorCode.MISSING_COMMUNITY));
+});
+
 it('EErrorCode - every value equals its key', () => {
 	Object.keys(EErrorCode).forEach(key => assert.strictEqual(EErrorCode[key], key));
 	assert.strictEqual(SteamBadgeUnlocker.EErrorCode, EErrorCode);
