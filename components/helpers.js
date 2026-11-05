@@ -16,6 +16,31 @@ exports.delay = seconds => {
  */
 exports.createError = (code, message = code) => Object.assign(new Error(message), {code});
 
+/**
+ * @param {{statusCode?: number, headers?: Object<string, *>}|null|undefined} response
+ * @param {*} body
+ * @param {{url?: string, uri?: string, method?: string}} [request]
+ * @returns {(Error & {code: 'ACCESS_DENIED', statusCode: 403, reference: string|null, url: string|null, method: string})|null}
+ */
+exports.getAccessDeniedError = (response, body, request = {}) => {
+	if (!response || response.statusCode !== 403) {
+		return null;
+	}
+	const page = typeof body === 'string' ? body.replace(/&#(\d+);/g, (entity, charCode) => String.fromCharCode(Number(charCode))) : '';
+	const server = String((response.headers && response.headers.server) || '');
+	if (!/AkamaiGHost/i.test(server) && !(/<TITLE>Access Denied<\/TITLE>/i.test(page) && /errors\.edgesuite\.net/i.test(page))) {
+		return null;
+	}
+	const reference = page.match(/Reference #([0-9a-f.]+)/i);
+	const url = request.url || request.uri;
+	return Object.assign(exports.createError('ACCESS_DENIED'), {
+		statusCode: 403,
+		reference: reference ? reference[1] : null,
+		url: typeof url === 'string' ? url.split('?')[0] : null,
+		method: String(request.method || 'GET').toUpperCase(),
+	});
+};
+
 const previousOfFinishedHook = new WeakMap();
 
 /**

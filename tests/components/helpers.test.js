@@ -163,3 +163,21 @@ it('withMissingRequiredHeaders() - adds a missing required header next to the ot
 	assert.deepStrictEqual(post.headers, {origin: 'https://steamcommunity.com', 'Accept-Language': 'en-US,en;q=0.9'});
 	assert.deepStrictEqual(headers, {origin: 'https://steamcommunity.com'});
 });
+
+it('getAccessDeniedError() - an Akamai 403 page becomes ACCESS_DENIED with the reference, the url without query and the method', () => {
+	const page = fs.readFileSync(__dirname + '/../fixtures/pages/akamai-access-denied.html', 'utf8');
+	const error = Helpers.getAccessDeniedError({statusCode: 403, headers: {server: 'AkamaiGHost'}}, page, {uri: 'https://steamcommunity.com/market/?l=english'});
+	assert.deepStrictEqual(
+		{code: error.code, message: error.message, statusCode: error.statusCode, reference: error.reference, url: error.url, method: error.method},
+		{code: 'ACCESS_DENIED', message: 'ACCESS_DENIED', statusCode: 403, reference: '18.202c1102.1793901546.74e95e7', url: 'https://steamcommunity.com/market/', method: 'GET'},
+	);
+	assert.strictEqual(Helpers.getAccessDeniedError({statusCode: 403, headers: {}}, page, {url: 'https://store.steampowered.com/', method: 'post'}).method, 'POST');
+});
+
+it('getAccessDeniedError() - other responses are no Akamai block', () => {
+	const familyView = '<div id="parental_notice_instructions">Enter your PIN below to exit Family View.</div>';
+	assert.strictEqual(Helpers.getAccessDeniedError({statusCode: 403, headers: {}}, familyView), null);
+	assert.strictEqual(Helpers.getAccessDeniedError({statusCode: 429, headers: {server: 'AkamaiGHost'}}, ''), null);
+	assert.strictEqual(Helpers.getAccessDeniedError({statusCode: 200, headers: {server: 'AkamaiGHost'}}, ''), null);
+	assert.strictEqual(Helpers.getAccessDeniedError(undefined, undefined), null);
+});

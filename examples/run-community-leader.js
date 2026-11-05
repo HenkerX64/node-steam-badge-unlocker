@@ -42,7 +42,15 @@ async function run() {
 			youtubeCookies,
 			log: (key, value) => log(account.username, key, value),
 		});
-		await leader.start().catch(error => log(account.username, 'start', error.message));
+		const error = await leader.start().then(() => null, rejection => rejection);
+		if (error) {
+			log(account.username, 'start', error.message);
+		}
+		if (error && error.code === SteamBadgeUnlocker.EErrorCode.ACCESS_DENIED) {
+			log(account.username, 'stopped', `Steam blocks web requests from this IP: ${error.method} ${error.url}, reference ${error.reference}`);
+			bot.user.logOff();
+			break;
+		}
 		await leader.finish();
 		bot.user.logOff();
 	}

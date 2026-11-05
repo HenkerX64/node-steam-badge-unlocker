@@ -5,7 +5,7 @@ SteamBadgeUnlocker.EFileType = require('./resources/EFileType');
 SteamBadgeUnlocker.EPublishedFileVisibility = require('./resources/EPublishedFileVisibility');
 SteamBadgeUnlocker.ESubSection = require('./resources/ESubSection');
 SteamBadgeUnlocker.EErrorCode = require('./resources/EErrorCode');
-const {createError, withMissingRequiredHeaders} = require('./components/helpers');
+const {createError, getAccessDeniedError, withMissingRequiredHeaders} = require('./components/helpers');
 
 /**
  * @param {SteamCommunity} SteamCommunity
@@ -56,7 +56,7 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 			 */
 			const callback = (err, response, body) => {
 				if (err) {
-					reject(err);
+					reject(getAccessDeniedError(response, body, params) || err);
 					return;
 				}
 				resolve(body);

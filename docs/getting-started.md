@@ -246,6 +246,7 @@ inside the quests a failed cleanup is not logged.
 
 | Code | Meaning | What to do |
 |---|---|---|
+| `ACCESS_DENIED` | Steam's CDN (Akamai) answered `403 Access Denied`: web requests from this IP are blocked, the store included. `start()` stops at that request; `quest`, `method`, `url` and `reference` are on the error | wait before the next run, requests during the block can extend it; or retry through another IP or proxy |
 | `MISSING_COMMUNITY` | the constructor got `undefined`, `null` or an object without `getSessionID` instead of a `steamcommunity` instance | pass a logged-in instance |
 | `MISSING_FILE_ID` | no screenshot id for the screenshot comment | make the master's newest screenshot public, or set `friendsScreenshotFileId` |
 | `MISSING_FILE_OWNER_STEAM_ID` | no owner for the screenshot comment | set a friend |

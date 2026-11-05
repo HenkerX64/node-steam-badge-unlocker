@@ -52,6 +52,16 @@ it('getWebApiKey() - the dev/apikey request sends Accept-Language', async () => 
 	assert.deepStrictEqual(acceptLanguages, ['en-US,en;q=0.9']);
 	assert.ok(!('onPreHttpRequest' in community));
 });
+it('get() - rejects with ACCESS_DENIED when Akamai denies the request', async () => {
+	const community = new SteamCommunityMock();
+	const page = require('fs').readFileSync(__dirname + '/fixtures/pages/akamai-access-denied.html', 'utf8');
+	community.setResultStack([[Object.assign(new Error('HTTP error 403'), {code: 403}), {statusCode: 403, headers: {server: 'AkamaiGHost'}}, page]]);
+	const error = await new SteamBadgeUnlocker(community).get({url: 'https://steamcommunity.com/market/', qs: {l: 'english'}}).catch(rejection => rejection);
+	assert.deepStrictEqual(
+		{code: error.code, reference: error.reference, url: error.url, method: error.method},
+		{code: 'ACCESS_DENIED', reference: '18.202c1102.1793901546.74e95e7', url: 'https://steamcommunity.com/market/', method: 'GET'},
+	);
+});
 it('getWebApiToken()', async () => {
 	assert.strictEqual(typeof _badgeUnlocker.getWebApiToken, 'function', 'exists');
 	assert.strictEqual(

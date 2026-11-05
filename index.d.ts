@@ -79,11 +79,13 @@ declare class SteamBadgeUnlocker {
 	/**
 	 * GET through `steamcommunity.httpRequest` with the session of `community`; resolves with the response body,
 	 * rejects with the steamcommunity error, no retries. Usable for your own Steam requests; overwrites `params.method`.
+	 * Rejects with `ACCESS_DENIED` instead when Steam's CDN (Akamai) blocks the request.
 	 */
 	get(params: SteamBadgeUnlocker.RequestParams): Promise<string | object>;
 	/**
 	 * POST through `steamcommunity.httpRequest` with the session of `community`; resolves with the response body,
 	 * rejects with the steamcommunity error, no retries. Usable for your own Steam requests; overwrites `params.method`.
+	 * Rejects with `ACCESS_DENIED` instead when Steam's CDN (Akamai) blocks the request.
 	 */
 	post(params: SteamBadgeUnlocker.RequestParams): Promise<string | object>;
 	/**
@@ -237,6 +239,9 @@ declare namespace SteamBadgeUnlocker {
 		deleteProfileStatus(...args: any[]): any;
 		editProfile(...args: any[]): any;
 		onPreHttpRequest?(requestId: number, source: string, options: RequestParams, continueRequest: (error?: Error | null) => void): boolean | void;
+		/** `start()` listens to `postHttpRequest` while it runs to recognise Akamai blocks. */
+		on?(event: string, listener: (...args: any[]) => void): unknown;
+		removeListener?(event: string, listener: (...args: any[]) => void): unknown;
 	}
 
 	/** The members of a `steam-user` client this package uses (PlayGame, UseEmoticonInChat). */
@@ -398,7 +403,10 @@ declare namespace SteamBadgeUnlocker {
 		 * Reads the open quests, runs them in a fixed order and logs each as `(questName, 'OK' | error code | result)`,
 		 * then logs the open quests again. Calls `finish()` only when no quest was open. Rejects when the badge progress
 		 * request fails, before or after the quests; when the page loads but shows no quests it logs
-		 * `('error', 'not able to get badge progress')` and treats no quest as open. A failing quest never rejects it.
+		 * `('error', 'not able to get badge progress')` and treats no quest as open. A failing quest never rejects it,
+		 * except when Steam's CDN (Akamai) blocks a request of `community` or `masterInstance`: then it logs
+		 * `(questName, 'ACCESS_DENIED')`, runs no further quest and rejects with `ACCESS_DENIED` (`quest`, `url`,
+		 * `method`, `reference` on the error). Whether to wait or retry through another IP is up to the caller.
 		 */
 		start(): Promise<void>;
 		/** Removes the friend when `forceRemoveFriend` is set and resolves `false` when that fails; otherwise resolves `true`. Safe to call after `start()`. */

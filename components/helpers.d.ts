@@ -18,6 +18,15 @@ export function delay(seconds: number): Promise<void>;
 /** Error with `code`; the message defaults to the code. */
 export function createError<T extends ErrorCode>(code: T, message?: string): Error & {code: T};
 /**
+ * `ACCESS_DENIED` when the response is the `403 Access Denied` page of Steam's CDN (Akamai), otherwise `null`.
+ * `url` is the request URL without its query; `reference` is the Akamai reference number of the page.
+ */
+export function getAccessDeniedError(
+	response: {statusCode?: number, headers?: {[name: string]: unknown}} | null | undefined,
+	body: unknown,
+	request?: {url?: string, uri?: string, method?: string},
+): (Error & {code: 'ACCESS_DENIED', statusCode: 403, reference: string | null, url: string | null, method: string}) | null;
+/**
  * Runs `run`; until it settles, `editOptions` edits every request of `community` before it is sent.
  * Uses the steamcommunity `onPreHttpRequest` hook, chains the hook set before and restores it afterwards.
  */

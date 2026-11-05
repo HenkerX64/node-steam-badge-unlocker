@@ -1,4 +1,6 @@
 const SteamBadgeUnlocker = require('../../index');
+const fs = require('fs');
+const EventEmitter = require('events');
 const SteamCommunityMock = require('../mocks/SteamCommunityMock');
 const SteamUserMock = require('../mocks/SteamUserMock');
 const assert = require('assert');
@@ -180,6 +182,33 @@ it('start() - a throwing quest is logged and the run continues', async () => {
 	const logs = [];
 	await runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])}).start();
 	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['JoinGroup', 'boom'], ['AddItemToWishlist', 'OK']]);
+});
+
+it('start() - stops at the first request Akamai denies and rejects with ACCESS_DENIED', async () => {
+	const community = new SteamCommunityMock();
+	const emitter = new EventEmitter();
+	community.on = emitter.on.bind(emitter);
+	community.removeListener = emitter.removeListener.bind(emitter);
+	const page = fs.readFileSync(__dirname + '/../fixtures/pages/akamai-access-denied.html', 'utf8');
+	community.joinGroup = (groupId, callback) => {
+		const httpError = Object.assign(new Error('HTTP error 403'), {code: 403});
+		callback(httpError);
+		emitter.emit('postHttpRequest', 1, 'steamcommunity', {uri: 'https://steamcommunity.com/groups/test/?l=english', method: 'POST'}, httpError, {statusCode: 403, headers: {server: 'AkamaiGHost'}}, page);
+	};
+	const runUnlocker = new SteamBadgeUnlocker(community);
+	runUnlocker.getCommunityBadgeProgress = async () => ({
+		response: {quests: [101, 108].map(questid => ({questid, completed: false}))},
+	});
+	const logs = [];
+	const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
+	const error = await runLeader.start().then(() => null, rejection => rejection);
+	assert.deepStrictEqual(
+		{code: error.code, quest: error.quest, reference: error.reference, url: error.url, method: error.method},
+		{code: 'ACCESS_DENIED', quest: 'JoinGroup', reference: '18.202c1102.1793901546.74e95e7', url: 'https://steamcommunity.com/groups/test/', method: 'POST'},
+	);
+	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['JoinGroup', 'ACCESS_DENIED']]);
+	assert.strictEqual(runLeader.getLastError(), error);
+	assert.strictEqual(emitter.listenerCount('postHttpRequest'), 0);
 });
 
 it('start() - logs the code of a failed quest instead of its message', async () => {

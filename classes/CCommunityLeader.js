@@ -1,6 +1,6 @@
 const SteamBadgeUnlocker = require('../index.js');
 const DefaultOptions = require('../resources/OCommunityLeaderDefault');
-const {delay, createError, withMissingRequiredHeaders} = require('../components/helpers');
+const {delay, createError, getAccessDeniedError, withMissingRequiredHeaders} = require('../components/helpers');
 const EErrorCode = require('../resources/EErrorCode');
 
 const fs = require('fs');
@@ -161,6 +161,7 @@ function CCommunityLeader(communityBadge, options) {
 	this.tradeBanState = false;
 	/** @type {Error|null} */
 	this._lastError = null;
+	this._accessDenied = null;
 
 	/**
 	 * @param {string} key
@@ -206,7 +207,20 @@ function CCommunityLeader(communityBadge, options) {
 		return progress.response.quests.filter(quest => !quest.completed);
 	}
 
-	this.start = async function () {
+	const throwIfAccessDenied = (questName) => {
+		const lastError = this.getLastError();
+		const denied = this._accessDenied || (lastError && lastError.code === EErrorCode.ACCESS_DENIED ? lastError : null);
+		if (!denied) {
+			return;
+		}
+		if (questName) {
+			denied.quest = questName;
+			this.log(questName, EErrorCode.ACCESS_DENIED);
+		}
+		setLastError(this, denied);
+		throw denied;
+	};
+	const runStart = async () => {
 		setLastError(this, null);
 		await this.init();
 		const openQuests = (await getOpenQuests()).map(quest => ({
@@ -220,6 +234,7 @@ function CCommunityLeader(communityBadge, options) {
 			return;
 		}
 		const user = await callbackCall(this._community, 'getSteamUser', this._community.steamID).catch(() => null);
+		throwIfAccessDenied();
 		if (user) {
 			this.isLimitedAccount = user.isLimitedAccount;
 			this.vacBanned = user.vacBanned;
@@ -230,6 +245,7 @@ function CCommunityLeader(communityBadge, options) {
 		}
 		const runQuest = async (questName) => {
 			const result = await guardOverriddenQuest(this, questName).call(this);
+			throwIfAccessDenied(questName);
 			this.log(questName, questLogValue(result, this.getLastError()));
 		};
 		const executeAll = async (questsNames) => {
@@ -311,7 +327,27 @@ function CCommunityLeader(communityBadge, options) {
 		this.log('-', {openQuests: openQuestsAfter, solvedQuests});
 		// steam client only
 		// vac banned account
-	}
+	};
+	this.start = async function () {
+		this._accessDenied = null;
+		const communities = [this._community, this.options.masterInstance].filter((community, i, all) => community
+			&& typeof community.on === 'function' && typeof community.removeListener === 'function' && all.indexOf(community) === i);
+		const onResponse = (requestId, source, options, error, response, body) => {
+			this._accessDenied = this._accessDenied || getAccessDeniedError(response, body, options);
+		};
+		communities.forEach(community => community.on('postHttpRequest', onResponse));
+		try {
+			await runStart();
+		} catch (error) {
+			if (this._accessDenied && error !== this._accessDenied) {
+				setLastError(this, this._accessDenied);
+				throw this._accessDenied;
+			}
+			throw error;
+		} finally {
+			communities.forEach(community => community.removeListener('postHttpRequest', onResponse));
+		}
+	};
 	this.finish = async function () {
 		if (!this.options.forceRemoveFriend || !this.options.friendSteamId) {
 			return true;

@@ -12,11 +12,16 @@ const SteamCommunity = require('steamcommunity');
 const SteamBadgeUnlocker = require('steam-badge-unlocker');
 
 let masterCommunity = null;
+let accessDenied = null;
 
 const toText = value => typeof value === 'object' ? JSON.stringify(value) : value;
 
 module.exports = async function (steamClient, RequestCommunity, RequestStore, SessionID, options, callback) {
 	try {
+		if (accessDenied) {
+			options.log(`community badge: skipped, Steam blocks web requests from this IP since ${accessDenied.method} ${accessDenied.url}`);
+			return;
+		}
 		const community = new SteamCommunity();
 		community.setCookies(options.webCookie);
 		if (masterCommunity === null) {
@@ -24,17 +29,23 @@ module.exports = async function (steamClient, RequestCommunity, RequestStore, Se
 			options.log('community badge: master is ready');
 			return;
 		}
-		const leader = new SteamBadgeUnlocker(community).createCommunityLeader({
+		const unlocker = new SteamBadgeUnlocker(community);
+		const leader = unlocker.createCommunityLeader({
 			masterInstance: masterCommunity,
 			steamUser: steamClient,
 			forceAddFriend: true,
 			forceRemoveFriend: true,
 			log: (...values) => options.log(...values.map(toText)),
 		});
-		try {
-			await leader.start();
-		} finally {
-			await leader.finish();
+		const error = await leader.start().then(() => null, rejection => rejection);
+		if (error && error.code === SteamBadgeUnlocker.EErrorCode.ACCESS_DENIED) {
+			accessDenied = error;
+			options.logError(`community badge: Steam blocks web requests from this IP: ${error.method} ${error.url}, reference ${error.reference}`);
+			return;
+		}
+		await leader.finish();
+		if (error) {
+			throw error;
 		}
 	} catch (error) {
 		options.logError('community badge: ' + error.message);

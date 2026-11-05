@@ -1,5 +1,7 @@
 /** Codes of the errors this package creates, set as `error.code`; `SKIP_*` codes mark a skipped quest in `getLastError()`. */
 declare const EErrorCode: {
+	/** Steam's CDN (Akamai) answered `403 Access Denied`: web requests from this IP are blocked. The error has `reference`, `url`, `method` and, from `start()`, `quest`. */
+	readonly ACCESS_DENIED: 'ACCESS_DENIED';
 	/** `new SteamBadgeUnlocker(community)`: `community` has no `getSessionID`. */
 	readonly MISSING_COMMUNITY: 'MISSING_COMMUNITY';
 	/** `postSharedFileComment`: no file id, e.g. no `friendsScreenshotFileId` in PostCommentOnFriendsScreenshot. */
