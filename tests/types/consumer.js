@@ -15,4 +15,26 @@ async function setRealName(community) {
 	};
 }
 
-module.exports = {setRealName};
+/** @typedef {SteamBadgeUnlocker.SteamCommunityLike & {acceptConfirmationForObject(identitySecret: string, objectId: string, callback: (error: Error | null) => void): void}} FullCommunity */
+/** @typedef {import('steam-badge-unlocker')<FullCommunity>} TypedUnlocker */
+
+/**
+ * @param {TypedUnlocker} unlocker
+ * @returns {void}
+ */
+function confirm(unlocker) {
+	unlocker.getCommunity().acceptConfirmationForObject('secret', '1', () => undefined);
+}
+
+/**
+ * @param {import('steam-badge-unlocker')} unlocker
+ * @param {SteamBadgeUnlocker.ReadableLike} screenshot
+ * @returns {Promise<{id: string, openQuests: number}>}
+ */
+async function uploadAndCountOpenQuests(unlocker, screenshot) {
+	const upload = await unlocker.uploadScreenshot(767, 'title', '', screenshot);
+	const progress = await unlocker.getCommunityBadgeProgressFromProfile(2);
+	return {id: upload.id, openQuests: (progress.response.quests || []).filter(quest => !quest.completed).length};
+}
+
+module.exports = {setRealName, confirm, uploadAndCountOpenQuests};

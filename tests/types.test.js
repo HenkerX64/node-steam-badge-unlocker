@@ -58,7 +58,7 @@ function publicNames(sources) {
 }
 
 it('index.d.ts declares exactly the members of a SteamBadgeUnlocker instance', () => {
-	const block = declarationBlock(readDeclarations('index.d.ts'), 'declare class SteamBadgeUnlocker {', '\n}');
+	const block = declarationBlock(readDeclarations('index.d.ts'), 'declare class SteamBadgeUnlocker<', '\n}');
 	assert.deepStrictEqual(declaredNames(block, '\t'), publicNames([badgeUnlocker, SteamBadgeUnlocker.prototype]));
 });
 

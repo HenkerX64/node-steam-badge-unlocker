@@ -52,8 +52,11 @@ import Helpers = require('./components/helpers');
  * `withMissingRequiredHeaders`, a temporary workaround that is removed once steamcommunity sends the header itself,
  * and the test helpers `isSteamId` and `parseConfigString`.
  * Members starting with `_` are private and not declared.
+ *
+ * `C` is the type of the `steamcommunity` instance; `getCommunity()` returns it. `new SteamBadgeUnlocker(community)`
+ * infers it, in JSDoc write `import('steam-badge-unlocker')<import('steamcommunity')>`.
  */
-declare class SteamBadgeUnlocker {
+declare class SteamBadgeUnlocker<C extends SteamBadgeUnlocker.SteamCommunityLike = SteamBadgeUnlocker.SteamCommunityLike> {
 	/**
 	 * Reads `steamID` and the session id of `community` once, so create it after the web session is set and
 	 * again after a new login. Throws `MISSING_COMMUNITY` when `community` is `undefined`, `null` or an object
@@ -62,7 +65,7 @@ declare class SteamBadgeUnlocker {
 	 * @param options Web API key and store `webapi_token`, read from Steam on first use when not set; custom profile
 	 *   URL name, which `leader.start()` also sets from the account
 	 */
-	constructor(community: SteamBadgeUnlocker.SteamCommunityLike, options?: SteamBadgeUnlocker.UnlockerOptions | null);
+	constructor(community: C, options?: SteamBadgeUnlocker.UnlockerOptions | null);
 
 	/** Language of the requests; always `'english'`. */
 	getLanguage(): string;
@@ -75,19 +78,19 @@ declare class SteamBadgeUnlocker {
 	/** Session id of the web session. */
 	getSessionId(): string;
 	/** The `steamcommunity` instance passed to the constructor. */
-	getCommunity(): SteamBadgeUnlocker.SteamCommunityLike;
+	getCommunity(): C;
 	/**
 	 * GET through `steamcommunity.httpRequest` with the session of `community`; resolves with the response body,
 	 * rejects with the steamcommunity error, no retries. Usable for your own Steam requests; overwrites `params.method`.
 	 * Rejects with `ACCESS_DENIED` instead when Steam's CDN (Akamai) blocks the request.
 	 */
-	get(params: SteamBadgeUnlocker.RequestParams): Promise<string | object>;
+	get(params: SteamBadgeUnlocker.RequestParams): Promise<any>;
 	/**
 	 * POST through `steamcommunity.httpRequest` with the session of `community`; resolves with the response body,
 	 * rejects with the steamcommunity error, no retries. Usable for your own Steam requests; overwrites `params.method`.
 	 * Rejects with `ACCESS_DENIED` instead when Steam's CDN (Akamai) blocks the request.
 	 */
-	post(params: SteamBadgeUnlocker.RequestParams): Promise<string | object>;
+	post(params: SteamBadgeUnlocker.RequestParams): Promise<any>;
 	/**
 	 * Web API key of the account through `steamcommunity.getWebApiKey('localhost')`, read once. steamcommunity 3.48
 	 * and later only read an existing key; 3.43–3.47 register one for `localhost` when the account has none. The
