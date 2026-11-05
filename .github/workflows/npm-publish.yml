@@ -1,19 +1,74 @@
-name: Publish Package to npmjs
+name: Release
 on:
-  release:
-    types: [ created ]
+  push:
+    branches:
+      - master
 permissions:
-  id-token: write
   contents: read
 jobs:
-  build:
+  test:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  check:
+    needs: test
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
     steps:
       - uses: actions/checkout@v4
+      - id: version
+        name: Check whether package.json has an unreleased version
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null || npm view "$name@$version" version > /dev/null 2>&1; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "v$version is already tagged or published"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "v$version waits for the release job"
+          fi
+
+  release:
+    needs: check
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      TAG: v${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
+      - name: Write the release notes
+        run: |
+          previous=$(git describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)
+          range=${previous:+$previous..}HEAD
+          {
+            if [ -n "$previous" ]; then
+              echo "Full Changelog: https://github.com/$GITHUB_REPOSITORY/compare/$previous...$TAG"
+              echo
+            fi
+            for verb in Fixed Added Updated Changed Removed; do
+              git log --reverse --no-merges --format='%s' "$range" | awk -v verb="$verb" 'index($0, verb " ") == 1 {print "- " $0}'
+            done
+          } > release-notes.md
+          cat release-notes.md
       - run: npm publish
+      - name: Create the tag and the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --notes-file release-notes.md
