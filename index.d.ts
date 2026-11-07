@@ -305,7 +305,7 @@ declare namespace SteamBadgeUnlocker {
 		/**
 		 * PostVideo: cookies of the linked YouTube account. Leave it unset to turn PostVideo off: without `accessToken`
 		 * it is skipped before any request, resolves `false` and logs `SKIP_MISSING_YOUTUBE_ACCESS_TOKEN`; the run continues.
-		 * Default: `{"accessToken":null,"authAccount":"","refreshToken":"null"}`.
+		 * Default: `{"accessToken":null,"authAccount":""}`.
 		 */
 		youtubeCookies: YoutubeCookies;
 		/** SubscribeToWorkshopItem, RateWorkshopItem: Workshop item. Default: `"308490450"`. */

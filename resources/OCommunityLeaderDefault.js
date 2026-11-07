@@ -42,7 +42,6 @@ module.exports = {
 	youtubeCookies: {
 		accessToken: null,
 		authAccount: '',
-		refreshToken: 'null',
 	},
 
 	/** @type {string} */

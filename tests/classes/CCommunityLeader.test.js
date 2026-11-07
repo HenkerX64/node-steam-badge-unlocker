@@ -40,7 +40,6 @@ const leader = _badgeUnlocker.createCommunityLeader({
 	youtubeCookies: {
 		accessToken: '%7B%22access_token%22%3A%22ya29.test-EURtest_test-test%22%2C%22expires_in%22%3A3599%2C%22scope%22%3A%22https%3A%5C%2F%5C%2Fwww.googleapis.com%5C%2Fauth%5C%2Fyoutube.readonly%22%2C%22token_type%22%3A%22Bearer%22%2C%22created%22%3A1645751827%7D',
 		authAccount: 'test',
-		refreshToken: 'null',
 	}
 });
 

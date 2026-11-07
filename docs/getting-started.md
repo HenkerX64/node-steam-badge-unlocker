@@ -276,7 +276,7 @@ object option such as `youtubeCookies` replaces the default object.
 | `friendSteamId` | `null` | friend quests; set to the master's SteamID when it is empty and `masterInstance` is set |
 | `friendsScreenshotFileId` | `null` | PostCommentOnFriendsScreenshot, RateUpContentInActivityFeed; read from the master when `null` and the friend is the master |
 | `steamUser` | `null` | PlayGame, UseEmoticonInChat; logged-in `steam-user` client of the same account |
-| `youtubeCookies` | `{accessToken: null, authAccount: '', refreshToken: 'null'}` | PostVideo |
+| `youtubeCookies` | `{accessToken: null, authAccount: ''}` | PostVideo |
 | `craftGameBadgeAppId` | `null` | CraftGameBadge; `null` takes the first badge ready to craft |
 
 ### Options with working defaults
