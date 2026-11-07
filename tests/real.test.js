@@ -104,9 +104,9 @@ describe('Unlimited account', () => {
 			},
 		});
 		await leader.init();
-		assert.ok(await leader.AddItemToWishlist(), 'AddItemToWishlist()');
-		assert.ok(await leader.SearchInDiscussions(), 'SearchInDiscussions()');
-		assert.ok(await leader.ViewGuideInOverlay(), 'ViewGuideInOverlay()');
+		assert.ok(await leader.AddItemToWishlist(), 'AddItemToWishlist() ' + leader.getLastError());
+		assert.ok(await leader.SearchInDiscussions(), 'SearchInDiscussions() ' + leader.getLastError());
+		assert.ok(await leader.ViewGuideInOverlay(), 'ViewGuideInOverlay() ' + leader.getLastError());
 		// assert.ok(leader.ViewBroadcast(), 'ViewBroadcast()');
 		// assert.ok(await leader.UseDiscoveryQueue(), 'UseDiscoveryQueue()');
 		assert.ok(await leader.BuyOrSellOnMarket() === null);

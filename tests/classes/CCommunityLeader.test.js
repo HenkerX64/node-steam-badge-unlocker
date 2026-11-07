@@ -5,6 +5,24 @@ const SteamCommunityMock = require('../mocks/SteamCommunityMock');
 const SteamUserMock = require('../mocks/SteamUserMock');
 const assert = require('assert');
 
+const realSetTimeout = setTimeout;
+const shortenedPauses = [];
+
+beforeEach(() => {
+	shortenedPauses.length = 0;
+	global.setTimeout = (callback, ms, ...args) => {
+		if (ms >= 1000) {
+			shortenedPauses.push(ms);
+			return realSetTimeout(callback, 0, ...args);
+		}
+		return realSetTimeout(callback, ms, ...args);
+	};
+});
+
+afterEach(() => {
+	global.setTimeout = realSetTimeout;
+});
+
 const _badgeUnlocker = new SteamBadgeUnlocker(new SteamCommunityMock());
 
 const leader = _badgeUnlocker.createCommunityLeader({
@@ -83,7 +101,7 @@ it('SetProfileBackground() - without crafting', async () => {
  * @returns {Promise<*>}
  */
 function settleOrTimeout(promise, ms = 500) {
-	return Promise.race([promise, new Promise(resolve => setTimeout(() => resolve('timeout'), ms))]);
+	return Promise.race([promise, new Promise(resolve => realSetTimeout(() => resolve('timeout'), ms))]);
 }
 
 it('PostVideo() - disabled with accessToken null', async () => {
@@ -124,9 +142,8 @@ it('start() - waits before the final progress read when quests were solved', asy
 	runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [{questid: 108, completed: false}]}});
 	const runLeader = runUnlocker.createCommunityLeader({log: () => null});
 	runLeader.AddItemToWishlist = async () => true;
-	const startedAt = Date.now();
 	await runLeader.start();
-	assert.ok(Date.now() - startedAt >= 1900, 'expected the 2 s pause');
+	assert.deepStrictEqual(shortenedPauses, [2000], 'expected the 2 s pause');
 });
 
 it('PlayGame() - steam-user license request failure does not hang', async () => {
