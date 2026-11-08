@@ -1,0 +1,340 @@
+class SteamBadgeUnlocker<C extends SteamBadgeUnlocker.SteamCommunityLike = SteamBadgeUnlocker.SteamCommunityLike>
+new <C extends SteamBadgeUnlocker.SteamCommunityLike = SteamBadgeUnlocker.SteamCommunityLike>(community: C, options?: SteamBadgeUnlocker.UnlockerOptions | null | undefined) => SteamBadgeUnlocker<C>
+member addGameRecommendation: (appId: number, comment: string, rateUp?: boolean | undefined) => Promise<{ success: boolean; strError?: string | undefined; }>
+member addToWishlist: (appId: number, navRef?: string | undefined) => Promise<SteamBadgeUnlocker.WishlistResponse>
+member clearDiscoveryQueueAppId: (appId: number, queueAppId?: number | undefined) => Promise<string>
+member craftBadge: (appId: number, borderColor?: 0 | 1 | undefined, levels?: number | undefined) => Promise<SteamBadgeUnlocker.CraftBadgeResponse>
+member createCommunityLeader: (options?: Partial<SteamBadgeUnlocker.CommunityLeaderOptions> | null | undefined) => SteamBadgeUnlocker.CCommunityLeader
+member deleteGameRecommendation: (appId: number) => Promise<object | string>
+member deleteSharedFile: (fileId: string, appId?: number | undefined, fileType?: SteamBadgeUnlocker.EFileTypeType | undefined) => Promise<true>
+member deleteSharedFileComment: (steamId: string, fileId: string, commentId: string, count?: number | undefined) => Promise<true>
+member discussionsSearch: (query: string) => Promise<string>
+member fetchYoutubeVideos: () => Promise<{ youtubeId: string; }[]>
+member finishDiscoveryQueue: () => Promise<({ status: "fulfilled"; value: string; } | { status: "rejected"; reason: unknown; })[] | string[]>
+member generateNewDiscoveryQueue: (eQueueType?: number | undefined) => Promise<SteamBadgeUnlocker.DiscoveryQueueResult>
+member get: (params: SteamBadgeUnlocker.RequestParams) => Promise<any>
+member getAllContentHome: (subSection: SteamBadgeUnlocker.ESubSectionType, params?: SteamBadgeUnlocker.ContentQueryParams | undefined) => Promise<string>
+member getAppIdsReadyForCrafting: (pageNumber?: number | undefined) => Promise<number[]>
+member getBroadcastManifest: (steamId: string) => Promise<SteamBadgeUnlocker.BroadcastMpd>
+member getBroadcastTrendLinks: (params?: SteamBadgeUnlocker.ContentQueryParams | undefined) => Promise<SteamBadgeUnlocker.BroadcastLink[]>
+member getCommunity: () => C
+member getCommunityBadgeProgress: (apiKey: string, badgeId?: number | undefined) => Promise<SteamBadgeUnlocker.BadgeProgressResponse>
+member getCommunityBadgeProgressFromProfile: (badgeId?: number | undefined) => Promise<SteamBadgeUnlocker.BadgeProgressResponse>
+member getGuidesTrendLinks: (params?: SteamBadgeUnlocker.ContentQueryParams | undefined) => Promise<SteamBadgeUnlocker.GuideLink[]>
+member getLanguage: () => string
+member getLastFriendPosts: (minPosts?: number | undefined) => Promise<SteamBadgeUnlocker.CommentActionParams[]>
+member getOwnedProfileItems: () => Promise<{ response: SteamBadgeUnlocker.OwnedProfileItems; }>
+member getProfileUrl: () => string
+member getProfileVideos: (params?: undefined | { qs?: object | undefined; }) => Promise<SteamBadgeUnlocker.ProfileVideo[]>
+member getSessionId: () => string
+member getSharedFileDetails: (fileId: number | string, params?: undefined | { qs?: Record<string, number | string> | undefined; headers?: Record<string, string> | undefined; }) => Promise<string>
+member getSteamId: () => string
+member getUserNews: (start?: null | number | undefined) => Promise<SteamBadgeUnlocker.UserNewsResponse>
+member getWebApiKey: () => Promise<string>
+member getWebApiToken: () => Promise<string>
+member getWorkshopTrendLinks: (params?: SteamBadgeUnlocker.ContentQueryParams | undefined) => Promise<SteamBadgeUnlocker.WorkshopLink[]>
+member logFriendActivityUpvote: () => Promise<"null">
+member makeNavCookie: (snr: string, url: string) => void
+member modifyWishlist: (navRef: string, appId: number, remove: boolean) => Promise<SteamBadgeUnlocker.WishlistResponse>
+member post: (params: SteamBadgeUnlocker.RequestParams) => Promise<any>
+member postSharedFileComment: (steamId: string, fileId: string, comment: string, count?: number | undefined) => Promise<string>
+member postYoutubeVideo: (youtubeIds: string | string[], appId?: number | undefined, otherAssoc?: string | undefined) => Promise<number>
+member removeFromWishlist: (appId: number, navRef?: string | undefined) => Promise<SteamBadgeUnlocker.WishlistResponse>
+member selectAvatar: (appId: number, selectedAvatar?: number | undefined) => Promise<true>
+member setCustomProfileUrl: (customUrl: string) => string
+member setFavoriteBadge: (badgeId: number, isCommunityItem?: boolean | undefined) => Promise<boolean>
+member setProfileBackground: (itemId: number | string) => Promise<{ response: object; }>
+member setRealName: (realName: string) => Promise<true>
+member setYoutubeCookies: (cookies: SteamBadgeUnlocker.YoutubeCookies) => void
+member subscribeToSharedFile: (fileId: string, appId: number | string) => Promise<true>
+member unsubscribeFromSharedFile: (fileId: string, appId: number | string) => Promise<true>
+member uploadScreenshot: (appId: number, title: string, description: string, file: SteamBadgeUnlocker.ReadableLike, visibility?: SteamBadgeUnlocker.EPublishedFileVisibility | undefined) => Promise<{ success: true; id: string; }>
+member voteContent: (params: SteamBadgeUnlocker.CommentActionParams & { action: SteamBadgeUnlocker.CommentActionType; }) => Promise<SteamBadgeUnlocker.SharedFilesActivity>
+member voteSharedFile: (fileId: string, up?: boolean | undefined) => Promise<true>
+static ECommunityBadgeQuests: { readonly [questId: number]: string | undefined; readonly 101: "JoinGroup"; readonly 103: "PostCommentOnFriendsPage"; readonly 104: "RecommendGame"; readonly 105: "PostScreenshot"; readonly 106: "PostVideo"; readonly 108: "AddItemToWishlist"; readonly 109: "PostCommentOnFriendsScreenshot"; readonly 110: "SetupCommunityAvatar"; readonly 111: "SetupCommunityRealName"; readonly 112: "PlayGame"; readonly 113: "AddFriendToFriendsList"; readonly 114: "RateWorkshopItem"; readonly 115: "SetupSteamGuard"; readonly 117: "PostStatusToFriends"; readonly 118: "RateUpContentInActivityFeed"; readonly 119: "SubscribeToWorkshopItem"; readonly 120: "BuyOrSellOnMarket"; readonly 121: "ViewGuideInOverlay"; readonly 122: "Trade"; readonly 123: "SearchInDiscussions"; readonly 124: "CraftGameBadge"; readonly 125: "UseEmoticonInChat"; readonly 126: "SetProfileBackground"; readonly 127: "FeatureBadgeOnProfile"; readonly 128: "AddPhoneToAccount"; readonly 132: "UseDiscoveryQueue"; readonly 133: "ViewBroadcast"; readonly 134: "AddTwoFactorToAccount"; readonly AddFriendToFriendsList: 113; readonly AddItemToWishlist: 108; readonly AddPhoneToAccount: 128; readonly AddTwoFactorToAccount: 134; readonly BuyOrSellOnMarket: 120; readonly CraftGameBadge: 124; readonly FeatureBadgeOnProfile: 127; readonly JoinGroup: 101; readonly PlayGame: 112; readonly PostCommentOnFriendsPage: 103; readonly PostCommentOnFriendsScreenshot: 109; readonly PostScreenshot: 105; readonly PostStatusToFriends: 117; readonly PostVideo: 106; readonly RateUpContentInActivityFeed: 118; readonly RateWorkshopItem: 114; readonly RecommendGame: 104; readonly SearchInDiscussions: 123; readonly SetProfileBackground: 126; readonly SetupCommunityAvatar: 110; readonly SetupCommunityRealName: 111; readonly SetupSteamGuard: 115; readonly SubscribeToWorkshopItem: 119; readonly Trade: 122; readonly UseDiscoveryQueue: 132; readonly UseEmoticonInChat: 125; readonly ViewBroadcast: 133; readonly ViewGuideInOverlay: 121; }
+static EErrorCode: { readonly ACCESS_DENIED: "ACCESS_DENIED"; readonly MISSING_COMMUNITY: "MISSING_COMMUNITY"; readonly MISSING_FILE_ID: "MISSING_FILE_ID"; readonly MISSING_FILE_OWNER_STEAM_ID: "MISSING_FILE_OWNER_STEAM_ID"; readonly MISSING_FORM_ACTION: "MISSING_FORM_ACTION"; readonly MISSING_TOKEN_FIELD: "MISSING_TOKEN_FIELD"; readonly MISSING_WG_FIELD: "MISSING_WG_FIELD"; readonly MISSING_YOUTUBE_ACCESS_TOKEN: "MISSING_YOUTUBE_ACCESS_TOKEN"; readonly INVALID_YOUTUBE_ACCESS_TOKEN: "INVALID_YOUTUBE_ACCESS_TOKEN"; readonly NOT_FOUND_WEBAPI_TOKEN: "NOT_FOUND_WEBAPI_TOKEN"; readonly ON_SUCCESS_ID_NOT_FOUND: "ON_SUCCESS_ID_NOT_FOUND"; readonly REJECTED_COMMENT_DELETE: "REJECTED_COMMENT_DELETE"; readonly REJECTED_COMMENT_POST: "REJECTED_COMMENT_POST"; readonly REJECTED_SHARED_FILE_DELETE: "REJECTED_SHARED_FILE_DELETE"; readonly SCREENSHOT_UPLOAD_FAILED: "SCREENSHOT_UPLOAD_FAILED"; readonly UNKNOWN_COMMENT_DELETE: "UNKNOWN_COMMENT_DELETE"; readonly UNKNOWN_COMMENT_POST: "UNKNOWN_COMMENT_POST"; readonly SKIP_MISSING_FRIEND: "SKIP_MISSING_FRIEND"; readonly SKIP_MISSING_STEAM_USER: "SKIP_MISSING_STEAM_USER"; readonly SKIP_MISSING_YOUTUBE_ACCESS_TOKEN: "SKIP_MISSING_YOUTUBE_ACCESS_TOKEN"; }
+static EFileType: { readonly 2: "workshop"; readonly 3: "images"; readonly 4: "videos"; readonly 5: "screenshots"; readonly 9: "guides"; readonly workshop: 2; readonly images: 3; readonly videos: 4; readonly screenshots: 5; readonly guides: 9; }
+static EPublishedFileVisibility: { readonly 0: "Public"; readonly 1: "FriendsOnly"; readonly 2: "Private"; readonly 3: "Unlisted"; readonly Public: 0; readonly FriendsOnly: 1; readonly Private: 2; readonly Unlisted: 3; }
+static ESubSection: { readonly 2: "screenshots"; readonly 3: "videos"; readonly 4: "images"; readonly 5: "news"; readonly 6: "workshop"; readonly 9: "guides"; readonly 10: "reviews"; readonly 11: ""; readonly 13: "broadcasts"; readonly screenshots: 2; readonly videos: 3; readonly images: 4; readonly news: 5; readonly workshop: 6; readonly guides: 9; readonly reviews: 10; readonly '': 11; readonly broadcasts: 13; }
+static default: typeof SteamBadgeUnlocker
+interface AllContentHomeQuery.allguidepage?: number | undefined
+interface AllContentHomeQuery.appHubSubSection?: number | undefined
+interface AllContentHomeQuery.appid?: number | undefined
+interface AllContentHomeQuery.artpage?: number | undefined
+interface AllContentHomeQuery.broadcastsoffset?: number | undefined
+interface AllContentHomeQuery.browsefilter?: "alphabetical" | "mostrecent" | "trend" | undefined
+interface AllContentHomeQuery.browsesort?: "Alphabetical" | "MostRecent" | "Trend" | undefined
+interface AllContentHomeQuery.discussionspage?: number | undefined
+interface AllContentHomeQuery.integratedguidepage?: number | undefined
+interface AllContentHomeQuery.itemspage?: number | undefined
+interface AllContentHomeQuery.l?: string | undefined
+interface AllContentHomeQuery.mtxitemspage?: number | undefined
+interface AllContentHomeQuery.numperpage?: number | undefined
+interface AllContentHomeQuery.p?: number | undefined
+interface AllContentHomeQuery.readytouseitemspage?: number | undefined
+interface AllContentHomeQuery.screenshotspage?: number | undefined
+interface AllContentHomeQuery.userreviewsoffset?: number | undefined
+interface AllContentHomeQuery.videospage?: number | undefined
+interface AllContentHomeQuery.webguidepage?: number | undefined
+interface AllContentHomeQuery.workshopitemspage?: number | undefined
+interface BadgeProgressResponse.response: { quests?: SteamBadgeUnlocker.CommunityBadgeQuest[] | undefined; }
+interface BroadcastLink.url: string
+interface BroadcastLink.watchId: string
+interface BroadcastMpd.broadcastid: string
+interface BroadcastMpd.cdn_auth_url_parameters: null
+interface BroadcastMpd.eresult: number
+interface BroadcastMpd.heartbeat_interval: number
+interface BroadcastMpd.hls_url: string
+interface BroadcastMpd.is_replay: number
+interface BroadcastMpd.is_rtmp: number
+interface BroadcastMpd.is_webrtc: null
+interface BroadcastMpd.num_viewers: number
+interface BroadcastMpd.retry: number
+interface BroadcastMpd.success: string
+interface BroadcastMpd.title: string
+interface BroadcastMpd.url: string
+interface BroadcastMpd.viewertoken: string
+interface BroadcastMpd.webrtc_offer_sdp: null
+interface BroadcastMpd.webrtc_session_id: null
+interface BroadcastMpd.webrtc_turn_server: null
+interface CCommunityLeader.AddFriendToFriendsList: () => Promise<boolean>
+interface CCommunityLeader.AddItemToWishlist: () => Promise<boolean>
+interface CCommunityLeader.AddPhoneToAccount: () => Promise<null>
+interface CCommunityLeader.AddTwoFactorToAccount: () => Promise<null>
+interface CCommunityLeader.BuyOrSellOnMarket: () => Promise<null>
+interface CCommunityLeader.CraftGameBadge: () => Promise<boolean>
+interface CCommunityLeader.FeatureBadgeOnProfile: () => Promise<boolean>
+interface CCommunityLeader.JoinGroup: () => Promise<boolean>
+interface CCommunityLeader.PlayGame: () => Promise<boolean>
+interface CCommunityLeader.PostCommentOnFriendsPage: () => Promise<boolean>
+interface CCommunityLeader.PostCommentOnFriendsScreenshot: () => Promise<boolean>
+interface CCommunityLeader.PostScreenshot: () => Promise<boolean>
+interface CCommunityLeader.PostStatusToFriends: () => Promise<boolean>
+interface CCommunityLeader.PostVideo: () => Promise<boolean>
+interface CCommunityLeader.RateUpContentInActivityFeed: () => Promise<boolean>
+interface CCommunityLeader.RateWorkshopItem: () => Promise<boolean>
+interface CCommunityLeader.RecommendGame: () => Promise<boolean>
+interface CCommunityLeader.SearchInDiscussions: () => Promise<boolean>
+interface CCommunityLeader.SetProfileBackground: () => Promise<boolean>
+interface CCommunityLeader.SetupCommunityAvatar: () => Promise<boolean>
+interface CCommunityLeader.SetupCommunityRealName: () => Promise<boolean>
+interface CCommunityLeader.SetupSteamGuard: () => Promise<null>
+interface CCommunityLeader.SubscribeToWorkshopItem: () => Promise<boolean>
+interface CCommunityLeader.Trade: () => Promise<boolean>
+interface CCommunityLeader.UseDiscoveryQueue: () => Promise<boolean>
+interface CCommunityLeader.UseEmoticonInChat: () => Promise<boolean>
+interface CCommunityLeader.ViewBroadcast: () => Promise<boolean>
+interface CCommunityLeader.ViewGuideInOverlay: () => Promise<boolean>
+interface CCommunityLeader.finish: () => Promise<boolean>
+interface CCommunityLeader.getLastError: () => Error | null
+interface CCommunityLeader.init: () => Promise<void>
+interface CCommunityLeader.isLimitedAccount: boolean
+interface CCommunityLeader.log: (key: string, value: unknown) => void
+interface CCommunityLeader.options: SteamBadgeUnlocker.CommunityLeaderOptions
+interface CCommunityLeader.start: () => Promise<void>
+interface CCommunityLeader.tradeBanState: boolean
+interface CCommunityLeader.vacBanned: boolean
+type CommentActionParams = SteamBadgeUnlocker.CommentActionParams
+type CommentActionType = "delete" | "downvote" | "hideandreport" | "post" | "render" | "upvote"
+type CommentType = "ClanAnnouncement" | "ForumTopic" | "PublishedFile_Public" | "Recommendation" | "UserReceivedNewGame" | "UserStatusPublished"
+interface CommunityBadgeQuest.completed: boolean
+interface CommunityBadgeQuest.questid: number
+interface CommunityLeaderOptions.avatarAppId: number
+interface CommunityLeaderOptions.avatarIndex: number
+interface CommunityLeaderOptions.broadcastWatchId: null | string
+interface CommunityLeaderOptions.craftGameBadgeAppId: null | number
+interface CommunityLeaderOptions.discussionsKeyword: string
+interface CommunityLeaderOptions.emotionMessageText: string
+interface CommunityLeaderOptions.featureBadgeId: number
+interface CommunityLeaderOptions.fetchBadgesWithApiKey: boolean
+interface CommunityLeaderOptions.forceAddFriend: boolean
+interface CommunityLeaderOptions.forceRemoveFriend: boolean
+interface CommunityLeaderOptions.friendSteamId: null | string
+interface CommunityLeaderOptions.friendsPageComment: string
+interface CommunityLeaderOptions.friendsScreenshotComment: string
+interface CommunityLeaderOptions.friendsScreenshotFileId: null | string
+interface CommunityLeaderOptions.guideFileId: null | number | string
+interface CommunityLeaderOptions.joinGroupId: string
+interface CommunityLeaderOptions.leaveGroupAutomatically: boolean
+interface CommunityLeaderOptions.log: ((key: string, value: unknown) => void) | null
+interface CommunityLeaderOptions.masterInstance: SteamBadgeUnlocker.SteamCommunityLike | null
+interface CommunityLeaderOptions.playAppId: number
+interface CommunityLeaderOptions.playSeconds: number
+interface CommunityLeaderOptions.realName: string
+interface CommunityLeaderOptions.resetRealName: boolean
+interface CommunityLeaderOptions.resetRealNameAfterSeconds: number
+interface CommunityLeaderOptions.reviewAppId: number
+interface CommunityLeaderOptions.reviewText: string
+interface CommunityLeaderOptions.screenshotAppId: number
+interface CommunityLeaderOptions.screenshotDescription: string
+interface CommunityLeaderOptions.screenshotPath: string
+interface CommunityLeaderOptions.screenshotTitle: string
+interface CommunityLeaderOptions.statusAppId: number
+interface CommunityLeaderOptions.statusText: string
+interface CommunityLeaderOptions.steamOverlayUserAgent: string
+interface CommunityLeaderOptions.steamUser: SteamBadgeUnlocker.SteamUserLike | null
+interface CommunityLeaderOptions.wishlistAppId: number
+interface CommunityLeaderOptions.workshopAppId: number
+interface CommunityLeaderOptions.workshopFileId: string
+interface CommunityLeaderOptions.youtubeCookies: SteamBadgeUnlocker.YoutubeCookies
+interface CommunityLeaderOptions.youtubeId: null | string
+interface ContentQueryParams.headers?: Record<string, string> | undefined
+interface ContentQueryParams.qs?: SteamBadgeUnlocker.AllContentHomeQuery | undefined
+interface CraftBadgeResponse.Badge: SteamBadgeUnlocker.CraftedBadge
+interface CraftBadgeResponse.rgDroppedItems: SteamBadgeUnlocker.CraftedDroppedItem[]
+interface CraftBadgeResponse.success: number
+interface CraftedBadge.game: string
+interface CraftedBadge.image: string
+interface CraftedBadge.title: string
+interface CraftedBadge.unlocked_time: number
+interface CraftedBadge.xp: string
+interface CraftedDroppedItem.description: string
+interface CraftedDroppedItem.economy_hover_data: string
+interface CraftedDroppedItem.image: string
+interface CraftedDroppedItem.label: string
+interface CraftedDroppedItem.title: string
+interface DiscoveryQueueAppData.descids: number[]
+interface DiscoveryQueueAppData.discount: boolean
+interface DiscoveryQueueAppData.discount_block: string
+interface DiscoveryQueueAppData.has_live_broadcast: boolean
+interface DiscoveryQueueAppData.header: string
+interface DiscoveryQueueAppData.localized: boolean
+interface DiscoveryQueueAppData.name: string
+interface DiscoveryQueueAppData.os_windows: boolean
+interface DiscoveryQueueAppData.url_name: string
+interface DiscoveryQueueResult.queue: number[]
+interface DiscoveryQueueResult.rgAppData: Record<string, SteamBadgeUnlocker.DiscoveryQueueAppData>
+interface DiscoveryQueueResult.settings: SteamBadgeUnlocker.DiscoveryQueueSettings
+interface DiscoveryQueueSettings.exclude_dlc: 0 | 1 | null
+interface DiscoveryQueueSettings.exclude_early_access: 0 | 1 | null
+interface DiscoveryQueueSettings.exclude_software: 0 | 1 | null
+interface DiscoveryQueueSettings.exclude_soundtracks: 0 | 1 | null
+interface DiscoveryQueueSettings.exclude_videos: 0 | 1 | null
+interface DiscoveryQueueSettings.excluded_tagids: number[]
+interface DiscoveryQueueSettings.featured_tagids: number[]
+interface DiscoveryQueueSettings.full_controller_support: 0 | 1 | null
+interface DiscoveryQueueSettings.include_coming_soon: 0 | 1 | null
+interface DiscoveryQueueSettings.native_steam_controller: 0 | 1 | null
+interface DiscoveryQueueSettings.os_linux: 0 | 1 | null
+interface DiscoveryQueueSettings.os_mac: 0 | 1 | null
+interface DiscoveryQueueSettings.os_win: 0 | 1 | null
+type EFileTypeType = "guides" | "images" | "screenshots" | "videos" | "workshop"
+type EPublishedFileVisibility = 0 | 1 | 2 | 3
+type ESubSectionType = "" | "broadcasts" | "guides" | "images" | "news" | "reviews" | "screenshots" | "videos" | "workshop"
+type ErrorCode = "ACCESS_DENIED" | "INVALID_YOUTUBE_ACCESS_TOKEN" | "MISSING_COMMUNITY" | "MISSING_FILE_ID" | "MISSING_FILE_OWNER_STEAM_ID" | "MISSING_FORM_ACTION" | "MISSING_TOKEN_FIELD" | "MISSING_WG_FIELD" | "MISSING_YOUTUBE_ACCESS_TOKEN" | "NOT_FOUND_WEBAPI_TOKEN" | "ON_SUCCESS_ID_NOT_FOUND" | "REJECTED_COMMENT_DELETE" | "REJECTED_COMMENT_POST" | "REJECTED_SHARED_FILE_DELETE" | "SCREENSHOT_UPLOAD_FAILED" | "SKIP_MISSING_FRIEND" | "SKIP_MISSING_STEAM_USER" | "SKIP_MISSING_YOUTUBE_ACCESS_TOKEN" | "UNKNOWN_COMMENT_DELETE" | "UNKNOWN_COMMENT_POST"
+interface GuideLink.guideId: string
+interface GuideLink.url: string
+interface OwnedProfileItems.avatar_frames: SteamBadgeUnlocker.ProfileBackgroundItem[]
+interface OwnedProfileItems.mini_profile_backgrounds: SteamBadgeUnlocker.ProfileBackgroundItem[]
+interface OwnedProfileItems.profile_backgrounds: SteamBadgeUnlocker.ProfileBackgroundItem[]
+interface OwnedProfileItems.profile_modifiers: SteamBadgeUnlocker.ProfileBackgroundItem[]
+interface ProfileBackgroundItem.appid: number
+interface ProfileBackgroundItem.communityitemid: string
+interface ProfileBackgroundItem.image_large: string
+interface ProfileBackgroundItem.item_class: number
+interface ProfileBackgroundItem.item_description: string
+interface ProfileBackgroundItem.item_title: string
+interface ProfileBackgroundItem.item_type: number
+interface ProfileBackgroundItem.movie_mp4?: string | undefined
+interface ProfileBackgroundItem.movie_mp4_small?: string | undefined
+interface ProfileBackgroundItem.movie_webm?: string | undefined
+interface ProfileBackgroundItem.movie_webm_small?: string | undefined
+interface ProfileBackgroundItem.name: string
+interface ProfileVideo.fileId: string
+interface ProfileVideo.youtubeId: string
+interface ReadableLike.destroy?: (() => void) | undefined
+interface ReadableLike.once?: ((event: "error", listener: (error: Error) => void) => any) | undefined
+interface ReadableLike.pipe: (destination: any, options?: any) => any
+interface RequestParams.agentOptions?: object | undefined
+interface RequestParams.baseUrl?: string | undefined
+interface RequestParams.body?: string | undefined
+interface RequestParams.followAllRedirects?: boolean | undefined
+interface RequestParams.followOriginalHttpMethod?: boolean | undefined
+interface RequestParams.followRedirect?: boolean | undefined
+interface RequestParams.form?: object | undefined
+interface RequestParams.formData?: object | undefined
+interface RequestParams.har?: object | undefined
+interface RequestParams.headers?: Record<string, string> | undefined
+interface RequestParams.jar?: boolean | undefined
+interface RequestParams.json?: boolean | undefined
+interface RequestParams.maxRedirects?: number | undefined
+interface RequestParams.method?: string | undefined
+interface RequestParams.multipart?: object | object[] | undefined
+interface RequestParams.oauth?: object | undefined
+interface RequestParams.postambleCRLF?: boolean | undefined
+interface RequestParams.preambleCRLF?: boolean | undefined
+interface RequestParams.qs?: object | undefined
+interface RequestParams.removeRefererHeader?: boolean | undefined
+interface RequestParams.time?: boolean | undefined
+interface RequestParams.timeout?: number | undefined
+interface RequestParams.uri?: object | string | undefined
+interface RequestParams.url?: object | string | undefined
+interface SharedFilesActivity.comments_html: string
+interface SharedFilesActivity.has_upvoted: number
+interface SharedFilesActivity.name: string
+interface SharedFilesActivity.pagesize: string
+interface SharedFilesActivity.start: number
+interface SharedFilesActivity.success: boolean
+interface SharedFilesActivity.timelastpost: number
+interface SharedFilesActivity.total_count: number
+interface SharedFilesActivity.upvotes: number
+interface SharedFilesActivity.votetext?: string | undefined
+interface SteamCommunityLike.addFriend: (...args: any[]) => any
+interface SteamCommunityLike.deleteProfileStatus: (...args: any[]) => any
+interface SteamCommunityLike.deleteUserComment: (...args: any[]) => any
+interface SteamCommunityLike.editProfile: (...args: any[]) => any
+interface SteamCommunityLike.getSessionID: (...args: any[]) => any
+interface SteamCommunityLike.getSteamUser: (...args: any[]) => any
+interface SteamCommunityLike.getWebApiKey: (...args: any[]) => any
+interface SteamCommunityLike.httpRequest: (...args: any[]) => any
+interface SteamCommunityLike.httpRequestGet: (...args: any[]) => any
+interface SteamCommunityLike.joinGroup: (...args: any[]) => any
+interface SteamCommunityLike.leaveGroup: (...args: any[]) => any
+interface SteamCommunityLike.on?: ((event: string, listener: (...args: any[]) => void) => unknown) | undefined
+interface SteamCommunityLike.onPreHttpRequest?: ((requestId: number, source: string, options: SteamBadgeUnlocker.RequestParams, continueRequest: (error?: Error | null | undefined) => void) => boolean | void) | undefined
+interface SteamCommunityLike.postProfileStatus: (...args: any[]) => any
+interface SteamCommunityLike.postUserComment: (...args: any[]) => any
+interface SteamCommunityLike.removeFriend: (...args: any[]) => any
+interface SteamCommunityLike.removeListener?: ((event: string, listener: (...args: any[]) => void) => unknown) | undefined
+interface SteamCommunityLike.setCookies: (...args: any[]) => any
+interface SteamCommunityLike.steamID: null | { toString(): string; }
+interface SteamUserLike.chat: { sendFriendMessage(...args: any[]): any; }
+interface SteamUserLike.gamesPlayed: (...args: any[]) => any
+interface SteamUserLike.requestFreeLicense: (...args: any[]) => any
+interface UnlockerOptions.apiKey?: string | undefined
+interface UnlockerOptions.apiToken?: string | undefined
+interface UnlockerOptions.customUrl?: string | undefined
+interface UserNewsResponse.blotter_html?: string | undefined
+interface UserNewsResponse.next_request?: string | undefined
+interface UserNewsResponse.success: boolean
+interface UserNewsResponse.timestart?: number | undefined
+interface WishlistResponse.success?: boolean | undefined
+interface WishlistResponse.wishlistCount: number
+interface WorkshopLink.appId: number
+interface WorkshopLink.fileId: string
+interface WorkshopLink.url: string
+interface YoutubeCookies.accessToken: null | string
+interface YoutubeCookies.authAccount?: string | undefined
+interface YoutubeCookies.refreshToken?: string | undefined
+module components/helpers interface CommentActionParams.action?: SteamBadgeUnlocker.CommentActionType | undefined
+module components/helpers interface CommentActionParams.feature: string
+module components/helpers interface CommentActionParams.feature2?: string | undefined
+module components/helpers interface CommentActionParams.owner: string
+module components/helpers interface CommentActionParams.type: SteamBadgeUnlocker.CommentType
+module components/helpers type CommentActionType = "delete" | "downvote" | "hideandreport" | "post" | "render" | "upvote"
+module components/helpers type CommentType = "ClanAnnouncement" | "ForumTopic" | "PublishedFile_Public" | "Recommendation" | "UserReceivedNewGame" | "UserStatusPublished"
+module components/helpers type ErrorCode = "ACCESS_DENIED" | "INVALID_YOUTUBE_ACCESS_TOKEN" | "MISSING_COMMUNITY" | "MISSING_FILE_ID" | "MISSING_FILE_OWNER_STEAM_ID" | "MISSING_FORM_ACTION" | "MISSING_TOKEN_FIELD" | "MISSING_WG_FIELD" | "MISSING_YOUTUBE_ACCESS_TOKEN" | "NOT_FOUND_WEBAPI_TOKEN" | "ON_SUCCESS_ID_NOT_FOUND" | "REJECTED_COMMENT_DELETE" | "REJECTED_COMMENT_POST" | "REJECTED_SHARED_FILE_DELETE" | "SCREENSHOT_UPLOAD_FAILED" | "SKIP_MISSING_FRIEND" | "SKIP_MISSING_STEAM_USER" | "SKIP_MISSING_YOUTUBE_ACCESS_TOKEN" | "UNKNOWN_COMMENT_DELETE" | "UNKNOWN_COMMENT_POST"
+module components/helpers createError: <T extends ErrorCode>(code: T, message?: string | undefined) => Error & { code: T; }
+module components/helpers delay: (seconds: number) => Promise<void>
+module components/helpers getAccessDeniedError: (response: null | undefined | { statusCode?: number | undefined; headers?: undefined | { [name: string]: unknown; }; }, body: unknown, request?: undefined | { url?: string | undefined; uri?: string | undefined; method?: string | undefined; }) => (Error & { code: "ACCESS_DENIED"; statusCode: 403; reference: null | string; url: null | string; method: string; }) | null
+module components/helpers getActionUrl: (params: SteamBadgeUnlocker.CommentActionParams) => string
+module components/helpers isSteamId: (value: string) => boolean
+module components/helpers parseConfigString: (config: string, delimiter?: string | undefined) => { accountName: string; password: string; secret: string; params: string[]; }[]
+module components/helpers withMissingRequiredHeaders: <T>(community: SteamBadgeUnlocker.SteamCommunityLike, run: () => Promise<T>) => Promise<T>
+module components/helpers withRequestOptions: <T>(community: SteamBadgeUnlocker.SteamCommunityLike, editOptions: (options: SteamBadgeUnlocker.RequestParams) => void, run: () => Promise<T>) => Promise<T>
+module resources/ECommunityBadgeQuests: { readonly [questId: number]: string | undefined; readonly 101: "JoinGroup"; readonly 103: "PostCommentOnFriendsPage"; readonly 104: "RecommendGame"; readonly 105: "PostScreenshot"; readonly 106: "PostVideo"; readonly 108: "AddItemToWishlist"; readonly 109: "PostCommentOnFriendsScreenshot"; readonly 110: "SetupCommunityAvatar"; readonly 111: "SetupCommunityRealName"; readonly 112: "PlayGame"; readonly 113: "AddFriendToFriendsList"; readonly 114: "RateWorkshopItem"; readonly 115: "SetupSteamGuard"; readonly 117: "PostStatusToFriends"; readonly 118: "RateUpContentInActivityFeed"; readonly 119: "SubscribeToWorkshopItem"; readonly 120: "BuyOrSellOnMarket"; readonly 121: "ViewGuideInOverlay"; readonly 122: "Trade"; readonly 123: "SearchInDiscussions"; readonly 124: "CraftGameBadge"; readonly 125: "UseEmoticonInChat"; readonly 126: "SetProfileBackground"; readonly 127: "FeatureBadgeOnProfile"; readonly 128: "AddPhoneToAccount"; readonly 132: "UseDiscoveryQueue"; readonly 133: "ViewBroadcast"; readonly 134: "AddTwoFactorToAccount"; readonly AddFriendToFriendsList: 113; readonly AddItemToWishlist: 108; readonly AddPhoneToAccount: 128; readonly AddTwoFactorToAccount: 134; readonly BuyOrSellOnMarket: 120; readonly CraftGameBadge: 124; readonly FeatureBadgeOnProfile: 127; readonly JoinGroup: 101; readonly PlayGame: 112; readonly PostCommentOnFriendsPage: 103; readonly PostCommentOnFriendsScreenshot: 109; readonly PostScreenshot: 105; readonly PostStatusToFriends: 117; readonly PostVideo: 106; readonly RateUpContentInActivityFeed: 118; readonly RateWorkshopItem: 114; readonly RecommendGame: 104; readonly SearchInDiscussions: 123; readonly SetProfileBackground: 126; readonly SetupCommunityAvatar: 110; readonly SetupCommunityRealName: 111; readonly SetupSteamGuard: 115; readonly SubscribeToWorkshopItem: 119; readonly Trade: 122; readonly UseDiscoveryQueue: 132; readonly UseEmoticonInChat: 125; readonly ViewBroadcast: 133; readonly ViewGuideInOverlay: 121; }
+module resources/EErrorCode: { readonly ACCESS_DENIED: "ACCESS_DENIED"; readonly MISSING_COMMUNITY: "MISSING_COMMUNITY"; readonly MISSING_FILE_ID: "MISSING_FILE_ID"; readonly MISSING_FILE_OWNER_STEAM_ID: "MISSING_FILE_OWNER_STEAM_ID"; readonly MISSING_FORM_ACTION: "MISSING_FORM_ACTION"; readonly MISSING_TOKEN_FIELD: "MISSING_TOKEN_FIELD"; readonly MISSING_WG_FIELD: "MISSING_WG_FIELD"; readonly MISSING_YOUTUBE_ACCESS_TOKEN: "MISSING_YOUTUBE_ACCESS_TOKEN"; readonly INVALID_YOUTUBE_ACCESS_TOKEN: "INVALID_YOUTUBE_ACCESS_TOKEN"; readonly NOT_FOUND_WEBAPI_TOKEN: "NOT_FOUND_WEBAPI_TOKEN"; readonly ON_SUCCESS_ID_NOT_FOUND: "ON_SUCCESS_ID_NOT_FOUND"; readonly REJECTED_COMMENT_DELETE: "REJECTED_COMMENT_DELETE"; readonly REJECTED_COMMENT_POST: "REJECTED_COMMENT_POST"; readonly REJECTED_SHARED_FILE_DELETE: "REJECTED_SHARED_FILE_DELETE"; readonly SCREENSHOT_UPLOAD_FAILED: "SCREENSHOT_UPLOAD_FAILED"; readonly UNKNOWN_COMMENT_DELETE: "UNKNOWN_COMMENT_DELETE"; readonly UNKNOWN_COMMENT_POST: "UNKNOWN_COMMENT_POST"; readonly SKIP_MISSING_FRIEND: "SKIP_MISSING_FRIEND"; readonly SKIP_MISSING_STEAM_USER: "SKIP_MISSING_STEAM_USER"; readonly SKIP_MISSING_YOUTUBE_ACCESS_TOKEN: "SKIP_MISSING_YOUTUBE_ACCESS_TOKEN"; }
+module resources/EFileType: { readonly 2: "workshop"; readonly 3: "images"; readonly 4: "videos"; readonly 5: "screenshots"; readonly 9: "guides"; readonly workshop: 2; readonly images: 3; readonly videos: 4; readonly screenshots: 5; readonly guides: 9; }
+module resources/EPublishedFileVisibility: { readonly 0: "Public"; readonly 1: "FriendsOnly"; readonly 2: "Private"; readonly 3: "Unlisted"; readonly Public: 0; readonly FriendsOnly: 1; readonly Private: 2; readonly Unlisted: 3; }
+module resources/ESubSection: { readonly 2: "screenshots"; readonly 3: "videos"; readonly 4: "images"; readonly 5: "news"; readonly 6: "workshop"; readonly 9: "guides"; readonly 10: "reviews"; readonly 11: ""; readonly 13: "broadcasts"; readonly screenshots: 2; readonly videos: 3; readonly images: 4; readonly news: 5; readonly workshop: 6; readonly guides: 9; readonly reviews: 10; readonly '': 11; readonly broadcasts: 13; }
+module resources/OCommunityLeaderDefault: SteamBadgeUnlocker.CommunityLeaderOptions
