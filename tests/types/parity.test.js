@@ -115,6 +115,11 @@ describe('type declarations', () => {
 		assert.deepStrictEqual(patching.filter(file => model.methodsInterfaceMembers(file.replace(/\.js$/, '')) === null), []);
 	});
 
+	it('the runtime JS declares no own @typedef', () => {
+		const withTypedef = packageModules().filter(file => /@typedef\b/.test(fs.readFileSync(path.join(root, file), 'utf8')));
+		assert.deepStrictEqual(withTypedef, []);
+	});
+
 	it('package.json points to index.d.ts and publishes it', () => {
 		const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 		assert.strictEqual(packageJson.types, 'index.d.ts');

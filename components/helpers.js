@@ -6,10 +6,9 @@ exports.delay = seconds => {
 	return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
-/** @typedef {keyof typeof import('../resources/EErrorCode')} ErrorCode */
 
 /**
- * @template {ErrorCode} T
+ * @template {import('../index').ErrorCode} T
  * @param {T} code
  * @param {string} [message]
  * @returns {Error & {code: T}}
@@ -56,7 +55,7 @@ function skipFinishedHooks(hook) {
 
 /**
  * @template T
- * @param {SteamCommunity} community
+ * @param {import('../index').SteamCommunityLike} community
  * @param {function(Object): void} editOptions
  * @param {function(): Promise<T>} run
  * @returns {Promise<T>}
@@ -91,7 +90,7 @@ const MISSING_REQUIRED_HEADERS = {'Accept-Language': 'en-US,en;q=0.9'};
 
 /**
  * @template T
- * @param {SteamCommunity} community
+ * @param {import('../index').SteamCommunityLike} community
  * @param {function(): Promise<T>} run
  * @returns {Promise<T>}
  */
@@ -105,15 +104,12 @@ exports.withMissingRequiredHeaders = (community, run) => exports.withRequestOpti
 
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/global.js
- * @param {CommentActionParams} params
+ * @param {import('../index').CommentActionParams} params
  * @returns {string}
  */
 exports.getActionUrl = params => {
 	return `https://steamcommunity.com/comment/${params.type}/${params.action}/${params.owner}/${params.feature}/`;
 }
-/** @typedef {'ClanAnnouncement'|'ForumTopic'|'PublishedFile_Public'|'Recommendation'|'UserReceivedNewGame'|'UserStatusPublished'} CommentType */
-/** @typedef {'upvote'|'downvote'|'delete'|'post'|'render'|'hideandreport'} CommentActionType */
-/** @typedef {{type: CommentType, action?: CommentActionType, owner: string, feature: string, feature2?: string}} CommentActionParams */
 
 
 /**

@@ -1,5 +1,5 @@
 /**
- * @enum EPublishedFileVisibility
+ * @enum {number|string}
  */
 module.exports = {
 	"Public": 0,

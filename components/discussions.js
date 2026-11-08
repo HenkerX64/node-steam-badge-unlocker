@@ -1,9 +1,6 @@
 const SteamBadgeUnlocker = require('../index');
 
-/**
- * @param {string} query
- * @returns {Promise<string>}
- */
+/** @type {import('../index')['discussionsSearch']} */
 SteamBadgeUnlocker.prototype.discussionsSearch = function (query) {
 	return this.get({
 		url: 'https://steamcommunity.com/discussions/forum/search/',

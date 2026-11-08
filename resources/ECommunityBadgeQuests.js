@@ -1,5 +1,5 @@
 /**
- * @enum ECommunityBadgeQuests
+ * @enum {number|string}
  */
 module.exports = {
 	'AddFriendToFriendsList': 113,

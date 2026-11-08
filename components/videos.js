@@ -3,10 +3,9 @@ const EErrorCode = require('../resources/EErrorCode');
 const {createError} = require('./helpers');
 
 
-/** @typedef {{fileId: string, youtubeId: string}} ProfileVideos */
 /**
  * @param {string} html
- * @returns {Array<ProfileVideos>}
+ * @returns {Array<import('../index').ProfileVideo>}
  */
 function parseProfileVideos(html) {
 	const result = [];
@@ -27,8 +26,7 @@ function parseProfileVideos(html) {
 /**
  * Get already shared videos from current steam profile.
  *
- * @param {{qs: Object}} params
- * @returns {Promise<Array<ProfileVideos>>}
+ * @type {import('../index')['getProfileVideos']}
  */
 SteamBadgeUnlocker.prototype.getProfileVideos = async function (params = {}) {
 	const html = await this.get({
@@ -56,7 +54,7 @@ SteamBadgeUnlocker.prototype.getProfileVideos = async function (params = {}) {
  *
  * @note You need to assign YouTube accessToken cookie before using this.
  * @see SteamBadgeUnlocker.setYoutubeCookies
- * @returns {Promise<Array<{youtubeId: string}>>}
+ * @type {import('../index')['fetchYoutubeVideos']}
  */
 SteamBadgeUnlocker.prototype.fetchYoutubeVideos = async function () {
 	const html = await this.get({
@@ -88,10 +86,7 @@ SteamBadgeUnlocker.prototype.fetchYoutubeVideos = async function () {
  *
  * @note You need to assign YouTube accessToken cookie before using this.
  * @see SteamBadgeUnlocker.setYoutubeCookies
- * @param {Array<string>|string} youtubeIds
- * @param {number} appId
- * @param {string} otherAssoc
- * @returns {Promise<number>}
+ * @type {import('../index')['postYoutubeVideo']}
  */
 SteamBadgeUnlocker.prototype.postYoutubeVideo = async function (youtubeIds, appId = 0, otherAssoc = '') {
 	const videoIds = typeof youtubeIds === 'string' ? [youtubeIds] : youtubeIds;
@@ -126,10 +121,9 @@ SteamBadgeUnlocker.prototype.postYoutubeVideo = async function (youtubeIds, appI
 	return videoIds.filter(id => sharedIds.indexOf(id) !== -1).length;
 }
 
-/** @typedef {{accessToken: string, authAccount?: string, refreshToken?: string}} YoutubeCookies */
 /**
- * @param {YoutubeCookies} cookies
  * @see https://steamcommunity.com/my/videos/link
+ * @type {import('../index')['setYoutubeCookies']}
  */
 SteamBadgeUnlocker.prototype.setYoutubeCookies = function (cookies) {
 	if (!cookies || !cookies.accessToken) {

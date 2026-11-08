@@ -3,8 +3,7 @@ const SteamBadgeUnlocker = require('../index');
 
 /**
  * @link https://store.cloudflare.steamstatic.com/public/javascript/main.js
- * @param {string} snr
- * @param {string} url
+ * @type {import('../index')['makeNavCookie']}
  */
 SteamBadgeUnlocker.prototype.makeNavCookie = function (snr, url) {
 	const dateExpires = new Date();
@@ -16,10 +15,7 @@ SteamBadgeUnlocker.prototype.makeNavCookie = function (snr, url) {
 
 /**
  * @link https://store.cloudflare.steamstatic.com/public/javascript/dynamicstore.js
- * @param {string} navRef
- * @param {number} appId
- * @param {boolean} remove
- * @returns {Promise<{success: boolean, wishlistCount: number}>}
+ * @type {import('../index')['modifyWishlist']}
  */
 SteamBadgeUnlocker.prototype.modifyWishlist = function (navRef, appId, remove) {
 	const url = 'https://store.steampowered.com/api/' + (remove ? 'removefromwishlist' : 'addtowishlist');
@@ -46,9 +42,7 @@ SteamBadgeUnlocker.prototype.modifyWishlist = function (navRef, appId, remove) {
 
 /**
  * @link https://store.cloudflare.steamstatic.com/public/javascript/main.js
- * @param {number} appId
- * @param {string} navRef
- * @returns {Promise<{success: boolean, wishlistCount: number}>}
+ * @type {import('../index')['addToWishlist']}
  */
 SteamBadgeUnlocker.prototype.addToWishlist = function (appId, navRef = '1_direct-navigation__') {
 	return this.modifyWishlist(navRef, appId, false);
@@ -56,9 +50,7 @@ SteamBadgeUnlocker.prototype.addToWishlist = function (appId, navRef = '1_direct
 
 /**
  * @link https://store.cloudflare.steamstatic.com/public/javascript/main.js
- * @param {number} appId
- * @param {string} navRef
- * @returns {Promise<{success?: boolean, wishlistCount: number}>}
+ * @type {import('../index')['removeFromWishlist']}
  */
 SteamBadgeUnlocker.prototype.removeFromWishlist = function (appId, navRef = '1_direct-navigation__') {
 	return this.modifyWishlist(navRef, appId, true);

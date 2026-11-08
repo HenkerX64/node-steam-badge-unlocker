@@ -5,11 +5,7 @@ const {getActionUrl, createError} = require('./helpers');
 const EErrorCode = require('../resources/EErrorCode');
 
 
-/**
- * @param {string} fileId
- * @param {string|number} appId
- * @returns {Promise<true>}
- */
+/** @type {import('../index')['subscribeToSharedFile']} */
 SteamBadgeUnlocker.prototype.subscribeToSharedFile = async function (fileId, appId) {
 	const body = await this.post({
 		url: 'https://steamcommunity.com/sharedfiles/subscribe',
@@ -36,11 +32,7 @@ SteamBadgeUnlocker.prototype.subscribeToSharedFile = async function (fileId, app
 	return true;
 }
 
-/**
- * @param {string} fileId
- * @param {string|number} appId
- * @returns {Promise<true>}
- */
+/** @type {import('../index')['unsubscribeFromSharedFile']} */
 SteamBadgeUnlocker.prototype.unsubscribeFromSharedFile = async function (fileId, appId) {
 	const body = await this.post({
 		url: 'https://steamcommunity.com/sharedfiles/unsubscribe',
@@ -67,11 +59,7 @@ SteamBadgeUnlocker.prototype.unsubscribeFromSharedFile = async function (fileId,
 	return true;
 }
 
-/**
- * @param {string} fileId
- * @param {{qs: {insideModal: 1|0}, headers: module:http.IncomingHttpHeaders}} params
- * @returns {Promise<string>}
- */
+/** @type {import('../index')['getSharedFileDetails']} */
 SteamBadgeUnlocker.prototype.getSharedFileDetails = function (fileId, params = {}) {
 	return this.get({
 		url: 'https://steamcommunity.com/sharedfiles/filedetails/',
@@ -91,9 +79,7 @@ SteamBadgeUnlocker.prototype.getSharedFileDetails = function (fileId, params = {
 
 /**
  * @link https://community.akamai.steamstatic.com/public/javascript/sharedfiles_functions_logged_in.js
- * @param {string} fileId
- * @param {boolean} up
- * @returns {Promise<true>}
+ * @type {import('../index')['voteSharedFile']}
  */
 SteamBadgeUnlocker.prototype.voteSharedFile = async function (fileId, up = true) {
 	const body = await this.post({
@@ -120,12 +106,7 @@ SteamBadgeUnlocker.prototype.voteSharedFile = async function (fileId, up = true)
 	return true;
 }
 
-/**
- * @param {string} fileId
- * @param {number} appId
- * @param {EFileTypeType} fileType
- * @returns {Promise<true>}
- */
+/** @type {import('../index')['deleteSharedFile']} */
 SteamBadgeUnlocker.prototype.deleteSharedFile = async function (fileId, appId = 0, fileType = 'videos') {
 	const body = await this.post({
 		url: 'https://steamcommunity.com/sharedfiles/delete',
@@ -152,13 +133,7 @@ SteamBadgeUnlocker.prototype.deleteSharedFile = async function (fileId, appId = 
 	return true;
 }
 
-/**
- * @param {string} steamId
- * @param {string} fileId
- * @param {string} comment
- * @param {number} count
- * @returns {Promise<string>}
- */
+/** @type {import('../index')['postSharedFileComment']} */
 SteamBadgeUnlocker.prototype.postSharedFileComment = async function (steamId, fileId, comment, count = 5) {
 	if (!steamId) {
 		throw createError(EErrorCode.MISSING_FILE_OWNER_STEAM_ID);
@@ -200,13 +175,7 @@ SteamBadgeUnlocker.prototype.postSharedFileComment = async function (steamId, fi
 	throw createError(EErrorCode.UNKNOWN_COMMENT_POST);
 }
 
-/**
- * @param {string} steamId
- * @param {string} fileId
- * @param {string} commentId
- * @param {number} count
- * @returns {Promise<true>}
- */
+/** @type {import('../index')['deleteSharedFileComment']} */
 SteamBadgeUnlocker.prototype.deleteSharedFileComment = async function (steamId, fileId, commentId, count = 5) {
 	const response = await this.post({
 		url: getActionUrl({

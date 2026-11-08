@@ -3,9 +3,7 @@ const SteamCommunityHelpers = require('steamcommunity/components/helpers');
 
 /**
  * @link https://partner.steamgames.com/doc/webapi/IPlayerService#GetCommunityBadgeProgress
- * @param {string} apiKey
- * @param {number} badgeId
- * @returns {Promise<{response: {quests?: CommunityBadgeQuest[]}}>}
+ * @type {import('../index')['getCommunityBadgeProgress']}
  */
 SteamBadgeUnlocker.prototype.getCommunityBadgeProgress = function (apiKey, badgeId = 2) {
 	return this.get({
@@ -21,9 +19,7 @@ SteamBadgeUnlocker.prototype.getCommunityBadgeProgress = function (apiKey, badge
 
 /**
  * @link https://steamcommunity.com/my/badges/2
- * @param {number} badgeId
- * @param {boolean} isCommunityItem
- * @returns {Promise<boolean>}
+ * @type {import('../index')['setFavoriteBadge']}
  */
 SteamBadgeUnlocker.prototype.setFavoriteBadge = async function (badgeId, isCommunityItem = false) {
 	const url = `${this.getProfileUrl()}/` + (isCommunityItem ? 'gamecards/' : 'badges');
@@ -61,10 +57,7 @@ SteamBadgeUnlocker.prototype.setFavoriteBadge = async function (badgeId, isCommu
 
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/badges.js
- * @param {number} appId
- * @param {0|1} borderColor
- * @param {number} levels
- * @returns {Promise<CraftBadgeResponse>}
+ * @type {import('../index')['craftBadge']}
  */
 SteamBadgeUnlocker.prototype.craftBadge = async function (appId, borderColor = 0, levels = 1) {
 	const body = await this.post({
@@ -92,10 +85,7 @@ SteamBadgeUnlocker.prototype.craftBadge = async function (appId, borderColor = 0
 	return body;
 }
 
-/**
- * @param {number} pageNumber
- * @returns {Promise<Array<number>>}
- */
+/** @type {import('../index')['getAppIdsReadyForCrafting']} */
 SteamBadgeUnlocker.prototype.getAppIdsReadyForCrafting = async function (pageNumber = 1) {
 	const body = await this.get({
 		url: `${this.getProfileUrl()}/badges/`,
@@ -123,8 +113,7 @@ SteamBadgeUnlocker.prototype.getAppIdsReadyForCrafting = async function (pageNum
 
 /**
  * @link https://steamcommunity.com/my/badges/2
- * @param {number} badgeId
- * @returns {Promise<{response: {quests?: Array<CommunityBadgeQuest>}}>}
+ * @type {import('../index')['getCommunityBadgeProgressFromProfile']}
  */
 SteamBadgeUnlocker.prototype.getCommunityBadgeProgressFromProfile = async function (badgeId = 2) {
 	const html = await this.get({
@@ -138,7 +127,7 @@ SteamBadgeUnlocker.prototype.getCommunityBadgeProgressFromProfile = async functi
 			'Referer': this.getProfileUrl(),
 		},
 	});
-	/** @type {{response: {quests?: Array<CommunityBadgeQuest>}}} */
+	/** @type {{response: {quests?: Array<import('../index').CommunityBadgeQuest>}}} */
 	const result = {response: {}};
 
 	// Community Leader     - 500 XP (27+ completed tasks)
@@ -157,10 +146,10 @@ SteamBadgeUnlocker.prototype.getCommunityBadgeProgressFromProfile = async functi
 
 	/**
 	 * @param {string} html
-	 * @returns {Array<CommunityBadgeQuest>}
+	 * @returns {Array<import('../index').CommunityBadgeQuest>}
 	 */
 	function parseQuests(html) {
-		/** @type {Array<CommunityBadgeQuest>} */
+		/** @type {Array<import('../index').CommunityBadgeQuest>} */
 		const quests = [];
 		const pattern = /http[^"]+\/([^/]+)_(on|off)\.(png|jpg)/;
 		const questIcons = html.match(new RegExp(pattern, 'g'));
@@ -178,10 +167,10 @@ SteamBadgeUnlocker.prototype.getCommunityBadgeProgressFromProfile = async functi
 	}
 
 	/**
-	 * @returns {Array<CommunityBadgeQuest>}
+	 * @returns {Array<import('../index').CommunityBadgeQuest>}
 	 */
 	function getAllQuestsCompleted() {
-		/** @type {Array<CommunityBadgeQuest>} */
+		/** @type {Array<import('../index').CommunityBadgeQuest>} */
 		const quests = [];
 		const completed = true;
 		for (let questName in SteamBadgeUnlocker.ECommunityBadgeQuests) {
@@ -198,10 +187,3 @@ SteamBadgeUnlocker.prototype.getCommunityBadgeProgressFromProfile = async functi
 		return quests;
 	}
 }
-
-
-/** @typedef {{questid: number, completed: boolean}} CommunityBadgeQuest */
-/** @typedef {{game: string, image: string, title: string, unlocked_time: number, xp: string}} CraftedBadgeType */
-/** @typedef {{description: string, economy_hover_data: string, image: string, label: string, title: string}} CraftedDroppedItemType */
-/** @typedef {{Badge: CraftedBadgeType, rgDroppedItems: Array<CraftedDroppedItemType>, success: number}} CraftBadgeResponse */
-

@@ -1,6 +1,5 @@
 /**
- * @typedef {'screenshots'|'videos'|'images'|'workshop'|'guides'} EFileTypeType
- * @enum EFileType
+ * @enum {number|string}
  */
 module.exports = {
 	"workshop": 2,

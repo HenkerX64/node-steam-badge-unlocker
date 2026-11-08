@@ -1,6 +1,5 @@
 /**
- * @typedef {''|'screenshots'|'videos'|'images'|'news'|'workshop'|'guides'|'reviews'|'broadcasts'} ESubSectionType
- * @enum ESubSection
+ * @enum {number|string}
  */
 module.exports = {
 	"screenshots": 2,

@@ -38,7 +38,7 @@ module.exports = {
 
 	/** @type {string|null} (optional) */
 	youtubeId: null,
-	/** @type {YoutubeCookies} */
+	/** @type {import('../index').YoutubeCookies} */
 	youtubeCookies: {
 		accessToken: null,
 		authAccount: '',
@@ -84,14 +84,14 @@ module.exports = {
 	/** @type {string} */
 	emotionMessageText: ':steamthumbsup:',
 
-	/** @type {SteamUser} */
+	/** @type {import('../index').SteamUserLike} */
 	steamUser: null,
 
 	/** @type {function|null} (optional) */
 	log: null,
 	/**
 	 * Master instance should invite limited accounts and interact with slave instances.
-	 * @type {SteamCommunity|null} (optional)
+	 * @type {import('../index').SteamCommunityLike|null} (optional)
 	 */
 	masterInstance: null,
 };

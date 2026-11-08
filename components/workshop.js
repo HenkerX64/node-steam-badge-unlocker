@@ -2,13 +2,10 @@ const SteamBadgeUnlocker = require('../index');
 const EErrorCode = require('../resources/EErrorCode');
 const {createError} = require('./helpers');
 
-/**
- * @param {{qs?: AllContentHomeQuery, headers?: module:http.IncomingHttpHeaders}} params
- * @returns {Promise<Array<WorkshopLink>>}
- */
+/** @type {import('../index')['getWorkshopTrendLinks']} */
 SteamBadgeUnlocker.prototype.getWorkshopTrendLinks = async function (params = {}) {
 	const body = await this.getAllContentHome('workshop', params);
-	/** @type {Array<WorkshopLink>} */
+	/** @type {Array<import('../index').WorkshopLink>} */
 	const links = [];
 	const pattern = /data-appid="(\d+)"\s+data-publishedfileid="(\d+)"/;
 	const matches = body.match(new RegExp(pattern, 'g'));
@@ -28,7 +25,7 @@ SteamBadgeUnlocker.prototype.getWorkshopTrendLinks = async function (params = {}
 
 /**
  * @param {number} appId
- * @param {EFileTypeType} type
+ * @param {import('../index').EFileTypeType} type
  * @returns {Promise<{url: string, params: {title: string, description: string}}>}
  * @private
  */
@@ -83,7 +80,7 @@ SteamBadgeUnlocker.prototype._getUgcUploadForm = async function (appId = 767, ty
 }
 
 /**
- * @param {fs.ReadStream|null} file
+ * @param {import('fs').ReadStream|null} file
  * @returns {Promise<never>}
  */
 function firstStreamError(file) {
@@ -95,7 +92,7 @@ function firstStreamError(file) {
 }
 
 /**
- * @param {fs.ReadStream|null} file
+ * @param {import('fs').ReadStream|null} file
  */
 function closeFile(file) {
 	if (file && typeof file.destroy === 'function') {
@@ -103,14 +100,7 @@ function closeFile(file) {
 	}
 }
 
-/**
- * @param {number} appId
- * @param {string} title
- * @param {string} description
- * @param {fs.ReadStream} file
- * @param {EPublishedFileVisibility} visibility
- * @returns {Promise<{success: true, id: string}>}
- */
+/** @type {import('../index')['uploadScreenshot']} */
 SteamBadgeUnlocker.prototype.uploadScreenshot = async function (appId, title, description, file, visibility = SteamBadgeUnlocker.EPublishedFileVisibility.Private) {
 	const fileError = firstStreamError(file);
 	try {
@@ -144,5 +134,3 @@ SteamBadgeUnlocker.prototype.uploadScreenshot = async function (appId, title, de
 		throw error;
 	}
 }
-
-/** @typedef {{url: string, fileId: string, appId: number}} WorkshopLink */

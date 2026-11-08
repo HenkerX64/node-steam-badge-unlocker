@@ -1,10 +1,6 @@
 const SteamBadgeUnlocker = require('../index');
 
-/**
- * @param {number} appId
- * @param {number} queueAppId
- * @returns {Promise<string>}
- */
+/** @type {import('../index')['clearDiscoveryQueueAppId']} */
 SteamBadgeUnlocker.prototype.clearDiscoveryQueueAppId = function (appId, queueAppId = 10) {
 	return this.post({
 		url: 'https://store.steampowered.com/app/' + queueAppId,
@@ -27,8 +23,7 @@ SteamBadgeUnlocker.prototype.clearDiscoveryQueueAppId = function (appId, queueAp
 
 /**
  * @link https://store.cloudflare.steamstatic.com/public/javascript/discoveryqueue.js
- * @param {number} eQueueType
- * @returns {Promise<DiscoveryQueueResult>}
+ * @type {import('../index')['generateNewDiscoveryQueue']}
  */
 SteamBadgeUnlocker.prototype.generateNewDiscoveryQueue = function (eQueueType = 0) {
 	return this.post({
@@ -51,9 +46,7 @@ SteamBadgeUnlocker.prototype.generateNewDiscoveryQueue = function (eQueueType = 
 	});
 }
 
-/**
- * @returns {Promise<Array<PromiseSettledResult<Awaited<string>>>>}
- */
+/** @type {import('../index')['finishDiscoveryQueue']} */
 SteamBadgeUnlocker.prototype.finishDiscoveryQueue = function () {
 	return this.generateNewDiscoveryQueue().then((result) => {
 		/** @var {Promise[]} */
@@ -74,13 +67,9 @@ SteamBadgeUnlocker.prototype.finishDiscoveryQueue = function () {
 	}, (e) => Promise.reject(e));
 }
 
-/**
- * @param {ESubSectionType} subSection
- * @param {{qs?: AllContentHomeQuery, headers?: module:http.IncomingHttpHeaders}} params
- * @returns {Promise<string>}
- */
+/** @type {import('../index')['getAllContentHome']} */
 SteamBadgeUnlocker.prototype.getAllContentHome = function (subSection, params = {}) {
-	/** @type {AllContentHomeQuery} */
+	/** @type {import('../index').AllContentHomeQuery} */
 	const qs = {
 		l: this.getLanguage(),
 		p: 1,
@@ -100,63 +89,3 @@ SteamBadgeUnlocker.prototype.getAllContentHome = function (subSection, params = 
 		},
 	});
 }
-
-/** @typedef {{
- * browsesort?: 'Alphabetical'|'MostRecent'|'Trend',
- * browsefilter?: 'alphabetical'|'mostrecent'|'trend',
- * appHubSubSection?: number,
- * userreviewsoffset?: number,
- * broadcastsoffset?: number,
- * workshopitemspage?: number,
- * readytouseitemspage?: number,
- * mtxitemspage?: number,
- * itemspage?: number,
- * screenshotspage?: number,
- * videospage?: number,
- * artpage?: number,
- * allguidepage?: number,
- * webguidepage?: number,
- * integratedguidepage?: number,
- * discussionspage?: number,
- * numperpage?: number,
- * appid?: number,
- * p?: number,
- * l?: string,
- * }} AllContentHomeQuery */
-
-/** @typedef {{
- * queue: number[],
- * settings: DiscoveryQueueSettings,
- * rgAppData: Object.<string, DiscoveryQueueAppData>,
- * }} DiscoveryQueueResult
- */
-
-/** @typedef {{
- * os_win: null|0|1,
- * os_mac: null|0|1,
- * os_linux: null|0|1,
- * full_controller_support: null|0|1,
- * native_steam_controller: null|0|1,
- * include_coming_soon: null|0|1,
- * excluded_tagids: number[],
- * exclude_early_access: null|0|1,
- * exclude_videos: null|0|1,
- * exclude_software: null|0|1,
- * exclude_dlc: null|0|1,
- * exclude_soundtracks: null|0|1,
- * featured_tagids: number[],
- * }} DiscoveryQueueSettings
- */
-
-/** @typedef {{
- * name: string,
- * url_name: string,
- * discount_block: string,
- * descids: number[],
- * header: string,
- * os_windows: boolean,
- * has_live_broadcast: boolean,
- * discount: boolean,
- * localized: boolean,
- * }} DiscoveryQueueAppData
- */

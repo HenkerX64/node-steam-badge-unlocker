@@ -21,7 +21,7 @@ async function callbackCall(target, method, ...args) {
 }
 
 /**
- * @param {SteamCommunity} _community
+ * @param {import('../index').SteamCommunityLike} _community
  * @param {string} language
  * @returns {Promise<string|null>}
  */
@@ -124,10 +124,7 @@ function formatDate(d) {
 		+ ':' + ('0' + d.getMinutes()).slice(-2);
 }
 
-/**
- * @param {OCommunityLeaderDefault} options
- * @returns {CCommunityLeader}
- */
+/** @type {import('../index')['createCommunityLeader']} */
 SteamBadgeUnlocker.prototype.createCommunityLeader = function (options) {
 	return new CCommunityLeader(this, options);
 };
@@ -144,13 +141,13 @@ SteamBadgeUnlocker.prototype.createCommunityLeader = function (options) {
  * you can use this tool to finish the quests and level up your accounts.
  *
  * @param {SteamBadgeUnlocker} communityBadge
- * @param {OCommunityLeaderDefault} options
+ * @param {Partial<import('../index').CommunityLeaderOptions>|null} [options]
  * @constructor
  */
 function CCommunityLeader(communityBadge, options) {
 	this._badgeUnlocker = communityBadge;
 	this._community = communityBadge.getCommunity();
-	/** @type {Array<CraftedDroppedItemType>} dropped items after crafting */
+	/** @type {Array<import('../index').CraftedDroppedItem>} dropped items after crafting */
 	this._rgDroppedItems = [];
 	this.options = {
 		...DefaultOptions,
@@ -188,7 +185,7 @@ function CCommunityLeader(communityBadge, options) {
 		}
 	}
 
-	/** @returns {Promise<Array<CommunityBadgeQuest>>} */
+	/** @returns {Promise<Array<import('../index').CommunityBadgeQuest>>} */
 	const getOpenQuests = async () => {
 		let apiKey = '';
 		if (this.options.fetchBadgesWithApiKey && !this.isLimitedAccount) {
@@ -647,7 +644,7 @@ CCommunityLeader.prototype.UseDiscoveryQueue = async function () {
 CCommunityLeader.prototype.ViewBroadcast = async function () {
 	let broadcastWatchId = this.options.broadcastWatchId;
 	if (!broadcastWatchId) {
-		/** @type {Array<BroadcastLink>} */
+		/** @type {Array<import('../index').BroadcastLink>} */
 		const links = await this._badgeUnlocker.getBroadcastTrendLinks();
 		if (links.length === 0) {
 			return false;
@@ -665,7 +662,7 @@ CCommunityLeader.prototype.ViewBroadcast = async function () {
 CCommunityLeader.prototype.ViewGuideInOverlay = async function () {
 	let guideFileId = this.options.guideFileId;
 	if (!guideFileId) {
-		/** @type {Array<GuideLink>} */
+		/** @type {Array<import('../index').GuideLink>} */
 		const links = await this._badgeUnlocker.getGuidesTrendLinks();
 		if (links.length === 0) {
 			return false;

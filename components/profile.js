@@ -3,11 +3,7 @@ const SteamBadgeUnlocker = require('../index');
 const SteamCommunityHelpers = require('steamcommunity/components/helpers');
 const {getActionUrl, withMissingRequiredHeaders} = require("./helpers");
 
-/**
- * @param {number} appId
- * @param {number} selectedAvatar
- * @returns {Promise<true>}
- */
+/** @type {import('../index')['selectAvatar']} */
 SteamBadgeUnlocker.prototype.selectAvatar = async function (appId, selectedAvatar = 0) {
 	const body = await this.post({
 		url: 'https://steamcommunity.com/ogg/' + appId + '/selectAvatar',
@@ -34,10 +30,7 @@ SteamBadgeUnlocker.prototype.selectAvatar = async function (appId, selectedAvata
 	return true;
 }
 
-/**
- * @param {string|number} itemId
- * @returns {Promise<{response:{}}>}
- */
+/** @type {import('../index')['setProfileBackground']} */
 SteamBadgeUnlocker.prototype.setProfileBackground = async function (itemId) {
 	return this.post({
 		url: 'https://api.steampowered.com/IPlayerService/SetProfileBackground/v1/',
@@ -50,9 +43,7 @@ SteamBadgeUnlocker.prototype.setProfileBackground = async function (itemId) {
 		},
 	});
 }
-/**
- * @returns {Promise<{response:OwnedProfileItems}>}
- */
+/** @type {import('../index')['getOwnedProfileItems']} */
 SteamBadgeUnlocker.prototype.getOwnedProfileItems = async function () {
 	return this.get({
 		url: 'https://api.steampowered.com/IPlayerService/GetProfileItemsOwned/v1/',
@@ -66,8 +57,7 @@ SteamBadgeUnlocker.prototype.getOwnedProfileItems = async function () {
 
 /**
  * Sets the real name with steamcommunity's `editProfile`; its requests send the Accept-Language header Steam requires.
- * @param {string} realName
- * @returns {Promise<true>}
+ * @type {import('../index')['setRealName']}
  */
 SteamBadgeUnlocker.prototype.setRealName = function (realName) {
 	const community = this.getCommunity();
@@ -78,7 +68,7 @@ SteamBadgeUnlocker.prototype.setRealName = function (realName) {
 
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/blotter_functions.js
- * @returns {Promise<'null'>}
+ * @type {import('../index')['logFriendActivityUpvote']}
  */
 SteamBadgeUnlocker.prototype.logFriendActivityUpvote = function () {
 	return this.post({
@@ -96,10 +86,7 @@ SteamBadgeUnlocker.prototype.logFriendActivityUpvote = function () {
 	});
 }
 
-/**
- * @param {number} start
- * @returns {Promise<{success: boolean, blotter_html?: string, next_request?: string, timestart?: number}>}
- */
+/** @type {import('../index')['getUserNews']} */
 SteamBadgeUnlocker.prototype.getUserNews = function (start = null) {
 	const params = {};
 	if (start) {
@@ -120,12 +107,9 @@ SteamBadgeUnlocker.prototype.getUserNews = function (start = null) {
 	});
 }
 
-/**
- * @param {number} minPosts
- * @returns {Promise<Array<CommentActionParams>>}
- */
+/** @type {import('../index')['getLastFriendPosts']} */
 SteamBadgeUnlocker.prototype.getLastFriendPosts = async function (minPosts = 1) {
-	/** @type {Array<CommentActionParams>} */
+	/** @type {Array<import('../index').CommentActionParams>} */
 	const posts = [];
 	const threadIdsPattern = /id="commentthread_([a-zA-Z_]+)_(\d+)_(\d+)_(\d+)?_?area"/;
 	let start = null;
@@ -163,10 +147,7 @@ SteamBadgeUnlocker.prototype.getLastFriendPosts = async function (minPosts = 1) 
 	return posts;
 }
 
-/**
- * @param {{type: CommentType, action: CommentActionType, owner: string, feature: string}} params
- * @returns {Promise<SharedFilesActivityType>}
- */
+/** @type {import('../index')['voteContent']} */
 SteamBadgeUnlocker.prototype.voteContent = function (params) {
 	return this.post({
 		url: getActionUrl(params),
@@ -187,12 +168,7 @@ SteamBadgeUnlocker.prototype.voteContent = function (params) {
 	});
 }
 
-/**
- * @param {number} appId
- * @param {string} comment
- * @param {boolean} rateUp
- * @returns {Promise<{success: boolean, strError?: string}>}
- */
+/** @type {import('../index')['addGameRecommendation']} */
 SteamBadgeUnlocker.prototype.addGameRecommendation = function (appId, comment, rateUp = true) {
 	return this.post({
 		url: 'https://store.steampowered.com/friends/recommendgame',
@@ -221,6 +197,7 @@ SteamBadgeUnlocker.prototype.addGameRecommendation = function (appId, comment, r
 	});
 }
 
+/** @type {import('../index')['deleteGameRecommendation']} */
 SteamBadgeUnlocker.prototype.deleteGameRecommendation = function (appId) {
 	return this.post({
 		url: `${this.getProfileUrl()}/recommended/`,
@@ -243,7 +220,3 @@ SteamBadgeUnlocker.prototype.deleteGameRecommendation = function (appId) {
 		}
 	});
 }
-
-/** @typedef {{communityitemid: string, image_large: string, name: string, item_title: string, item_description: string, appid: number, item_type: number, item_class: number, movie_webm?: string, movie_mp4?: string, movie_webm_small?: string, movie_mp4_small?: string}} ProfileBackgroundItem */
-/** @typedef {{profile_backgrounds: Array<ProfileBackgroundItem>, mini_profile_backgrounds: Array<ProfileBackgroundItem>, avatar_frames: Array<ProfileBackgroundItem>, profile_modifiers: Array<ProfileBackgroundItem>}} OwnedProfileItems */
-/** @typedef {{success: boolean, name: string, start: number, pagesize: string, total_count: number, upvotes: number, has_upvoted: number, comments_html: string, timelastpost: number, votetext?: string }} SharedFilesActivityType */

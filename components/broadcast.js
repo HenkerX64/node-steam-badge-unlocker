@@ -2,8 +2,7 @@ const SteamBadgeUnlocker = require('../index');
 
 /**
  * @link https://community.cloudflare.steamstatic.com/public/javascript/broadcast_watch.js
- * @param {string} steamId
- * @returns {Promise<BroadcastMpd>}
+ * @type {import('../index')['getBroadcastManifest']}
  */
 SteamBadgeUnlocker.prototype.getBroadcastManifest = function (steamId) {
 	return this.get({
@@ -24,13 +23,10 @@ SteamBadgeUnlocker.prototype.getBroadcastManifest = function (steamId) {
 	});
 }
 
-/**
- * @param {{qs?: AllContentHomeQuery, headers?: module:http.IncomingHttpHeaders}} params
- * @returns {Promise<Array<BroadcastLink>>}
- */
+/** @type {import('../index')['getBroadcastTrendLinks']} */
 SteamBadgeUnlocker.prototype.getBroadcastTrendLinks = async function (params = {}) {
 	const body = await this.getAllContentHome('broadcasts', params);
-	/** @type {Array<BroadcastLink>} */
+	/** @type {Array<import('../index').BroadcastLink>} */
 	const links = [];
 	const pattern = /https?:\/\/(www\.)?steamcommunity\.com\/broadcast\/watch\/(\d+)/;
 	const matches = body.match(new RegExp(pattern, 'g'));
@@ -46,25 +42,3 @@ SteamBadgeUnlocker.prototype.getBroadcastTrendLinks = async function (params = {
 
 	return links;
 }
-
-/** @typedef {{url: string, watchId: string}} BroadcastLink */
-/** @typedef {{
- * broadcastid: string,
- * cdn_auth_url_parameters: null,
- * eresult: number,
- * heartbeat_interval: number,
- * hls_url: string,
- * is_replay: number,
- * is_rtmp: number,
- * is_webrtc: null,
- * num_viewers: number,
- * retry: number,
- * success: 'ready'|string,
- * title: string,
- * url: string,
- * viewertoken: string,
- * webrtc_offer_sdp: null,
- * webrtc_session_id: null,
- * webrtc_turn_server: null,
- * }} BroadcastMpd
- */

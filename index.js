@@ -8,7 +8,7 @@ SteamBadgeUnlocker.EErrorCode = require('./resources/EErrorCode');
 const {createError, getAccessDeniedError, withMissingRequiredHeaders} = require('./components/helpers');
 
 /**
- * @param {SteamCommunity} SteamCommunity
+ * @param {import('./index').SteamCommunityLike} SteamCommunity
  * @param {{apiKey?: string, apiToken?: string, customUrl?: string}} options
  * @constructor
  * @returns {SteamBadgeUnlocker}
@@ -40,18 +40,18 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 	}
 	/** @returns {string} */
 	this.getSessionId = () => this._sessionId;
-	/** @returns {SteamCommunity} */
+	/** @returns {import('./index').SteamCommunityLike} */
 	this.getCommunity = () => this._community;
 
 	/**
-	 * @param {SteamBadgeUnlockerParams} params
+	 * @param {import('./index').RequestParams} params
 	 * @returns {Promise<string | Object>}
 	 */
 	const createPromiseRequest = function (params) {
 		return new Promise((resolve, reject) => {
 			/**
 			 * @param {null|Error} err
-			 * @param {module:http.IncomingMessage} response
+			 * @param {import('http').IncomingMessage} response
 			 * @param {string|Object} body
 			 */
 			const callback = (err, response, body) => {
@@ -67,7 +67,7 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 	}
 
 	/**
-	 * @param {SteamBadgeUnlockerParams} params
+	 * @param {import('./index').RequestParams} params
 	 * @returns {Promise<string | Object>}
 	 */
 	this.get = function (params) {
@@ -77,7 +77,7 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 	}
 
 	/**
-	 * @param {SteamBadgeUnlockerParams} params
+	 * @param {import('./index').RequestParams} params
 	 * @returns {Promise<string | Object>}
 	 */
 	this.post = function (params) {
@@ -145,32 +145,3 @@ require('./components/videos');
 require('./components/wishlist');
 require('./components/workshop');
 require('./classes/CCommunityLeader');
-
-
-/** @typedef {module:http.IncomingMessage} ResponseMessage */
-/** @typedef {{
- * uri: string|UrlObject,
- * url?: string|UrlObject,
- * baseUrl?: string,
- * json?: boolean|false,
- * headers?: Object.<string, string>,
- * multipart?: object|Array,
- * form?: object,
- * formData?: object,
- * method?: string,
- * body?: string,
- * jar?: boolean,
- * preambleCRLF?: boolean,
- * postambleCRLF?: boolean,
- * qs?: object,
- * oauth?: object,
- * agentOptions?: object,
- * har?: object,
- * time?: boolean,
- * timeout?: number,
- * followRedirect?: boolean|true,
- * followAllRedirects?: boolean|false,
- * followOriginalHttpMethod?: boolean|false,
- * maxRedirects?: number|10,
- * removeRefererHeader?: boolean|false,
- * }} SteamBadgeUnlockerParams */
