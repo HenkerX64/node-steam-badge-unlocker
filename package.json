@@ -65,7 +65,7 @@
   "scripts": {
     "test": "mocha tests/index.test.js --timeout 20000",
     "test-cov": "nyc mocha tests/index.test.js --timeout 20000",
-    "test-types": "tsc -p tests/types && tsc -p tests/types/consumer-patterns && node tests/types/api-surface.js --check",
+    "test-types": "tsc -p tests/types && tsc -p tests/types/consumer-patterns && node tests/types/api-surface.js --check && node --test tests/types/parity.test.js",
     "api-surface": "node tests/types/api-surface.js --write"
   }
 }
