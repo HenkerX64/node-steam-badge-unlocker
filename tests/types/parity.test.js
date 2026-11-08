@@ -35,6 +35,29 @@ function packageModules() {
 		.sort();
 }
 
+/**
+ * @param {string} file
+ * @returns {Array<string>} the public members the module assigns to SteamBadgeUnlocker.prototype
+ */
+function prototypeMethods(file) {
+	const source = fs.readFileSync(path.join(root, file), 'utf8');
+	const pattern = /^\s*SteamBadgeUnlocker\.prototype\.(\w+)\s*=/gm;
+	const names = [];
+	let match;
+	while ((match = pattern.exec(source))) {
+		names.push(match[1]);
+	}
+	return names.filter(name => !name.startsWith('_')).sort();
+}
+
+/**
+ * @param {string} file
+ * @returns {boolean}
+ */
+function hasDeclarations(file) {
+	return fs.existsSync(path.join(root, file.replace(/\.js$/, '.d.ts')));
+}
+
 describe('type declarations', () => {
 	it('declares exactly the members of a SteamBadgeUnlocker instance', () => {
 		assert.deepStrictEqual(model.instanceMembers(), publicNames([badgeUnlocker, SteamBadgeUnlocker.prototype]));
@@ -68,14 +91,28 @@ describe('type declarations', () => {
 		});
 	});
 
-	it('every module the package loads has a d.ts next to it exactly when it exports something', () => {
+	it('every module the package loads has a d.ts next to it when it exports something, and only then or when it adds prototype methods', () => {
 		const modules = packageModules();
 		const exporting = modules.filter((file) => {
 			const exported = require(path.join(root, file));
 			return typeof exported === 'function' || Object.keys(exported).length > 0;
 		});
-		const declared = modules.filter(file => fs.existsSync(path.join(root, file.replace(/\.js$/, '.d.ts'))));
-		assert.deepStrictEqual(declared, exporting);
+		const declared = modules.filter(hasDeclarations);
+		assert.deepStrictEqual(exporting.filter(file => !declared.includes(file)), []);
+		assert.deepStrictEqual(declared.filter(file => !exporting.includes(file) && prototypeMethods(file).length === 0), []);
+	});
+
+	it('each *Methods interface declares exactly the prototype methods its component adds', () => {
+		const split = packageModules().filter(file => prototypeMethods(file).length > 0 && hasDeclarations(file));
+		split.forEach((file) => {
+			assert.deepStrictEqual(model.methodsInterfaceMembers(file.replace(/\.js$/, '')), prototypeMethods(file), file);
+		});
+	});
+
+	it('every module that adds prototype methods has a *Methods declaration next to it', () => {
+		const patching = packageModules().filter(file => prototypeMethods(file).length > 0);
+		assert.ok(patching.length > 0);
+		assert.deepStrictEqual(patching.filter(file => model.methodsInterfaceMembers(file.replace(/\.js$/, '')) === null), []);
 	});
 
 	it('package.json points to index.d.ts and publishes it', () => {

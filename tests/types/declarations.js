@@ -129,6 +129,14 @@ function createDeclarationModel(root) {
 			}
 			return sortedNames(checker.getExportsOfModule(symbol).filter(item => item.flags & ts.SymbolFlags.Value));
 		},
+		methodsInterfaceMembers: (relPath) => {
+			const symbol = moduleSymbol(relPath);
+			if (!symbol) {
+				return null;
+			}
+			const methods = checker.getExportsOfModule(symbol).find(item => /Methods$/.test(item.name) && (item.flags & ts.SymbolFlags.Interface));
+			return methods ? sortedNames(checker.getPropertiesOfType(checker.getDeclaredTypeOfSymbol(methods))) : null;
+		},
 		enumValues: (relPath) => {
 			const symbol = moduleSymbol(relPath);
 			if (!symbol) {

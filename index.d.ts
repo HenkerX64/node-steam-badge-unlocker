@@ -4,6 +4,17 @@ import EFileTypeValues = require('./resources/EFileType');
 import EPublishedFileVisibilityValues = require('./resources/EPublishedFileVisibility');
 import ESubSectionValues = require('./resources/ESubSection');
 import Helpers = require('./components/helpers');
+import {ProfileMethods} from './components/profile';
+import {AppsMethods} from './components/apps';
+import {BadgesMethods} from './components/badges';
+import {BroadcastMethods} from './components/broadcast';
+import {DiscussionsMethods} from './components/discussions';
+import {GuidesMethods} from './components/guides';
+import {SharedfilesMethods} from './components/sharedfiles';
+import {VideosMethods} from './components/videos';
+import {WishlistMethods} from './components/wishlist';
+import {WorkshopMethods} from './components/workshop';
+import {CCommunityLeaderMethods} from './classes/CCommunityLeader';
 
 /**
  * Completes the quests of the Steam Community Leader badge (badge 2) for bot accounts. Works on your logged-in
@@ -51,6 +62,8 @@ import Helpers = require('./components/helpers');
  * `require('steam-badge-unlocker/components/helpers')` and the enums of `resources/`; the exceptions are
  * `withMissingRequiredHeaders`, a temporary workaround that is removed once steamcommunity sends the header itself,
  * and the test helpers `isSteamId` and `parseConfigString`.
+ * The `*Methods` interfaces of `components/*.d.ts` and `classes/*.d.ts` are internal: their members are public as
+ * members of `SteamBadgeUnlocker`, their names are not.
  * Members starting with `_` are private and not declared.
  *
  * `C` is the type of the `steamcommunity` instance; `getCommunity()` returns it. `new SteamBadgeUnlocker(community)`
@@ -100,113 +113,9 @@ declare class SteamBadgeUnlocker<C extends SteamBadgeUnlocker.SteamCommunityLike
 	getWebApiKey(): Promise<string>;
 	/** Store `webapi_token` from the points shop page, read once. The first call rejects with `NOT_FOUND_WEBAPI_TOKEN` when the page fails to load or has none; later calls resolve `''`. */
 	getWebApiToken(): Promise<string>;
-
-	/** Removes one app from the discovery queue. */
-	clearDiscoveryQueueAppId(appId: number, queueAppId?: number): Promise<string>;
-	/** Creates a new discovery queue. */
-	generateNewDiscoveryQueue(eQueueType?: number): Promise<SteamBadgeUnlocker.DiscoveryQueueResult>;
-	/**
-	 * Creates a discovery queue and clears every app in it (quest UseDiscoveryQueue). Resolves the settled result per
-	 * app; on Node.js before 12.9 the plain results instead, and it rejects with the first failed app.
-	 */
-	finishDiscoveryQueue(): Promise<Array<{status: 'fulfilled', value: string} | {status: 'rejected', reason: unknown}> | string[]>;
-	/** Loads one page of `https://steamcommunity.com/apps/allcontenthome/`. */
-	getAllContentHome(subSection: SteamBadgeUnlocker.ESubSectionType, params?: SteamBadgeUnlocker.ContentQueryParams): Promise<string>;
-
-	/** Quest progress through `IPlayerService/GetCommunityBadgeProgress`; needs a Web API key. */
-	getCommunityBadgeProgress(apiKey: string, badgeId?: number): Promise<SteamBadgeUnlocker.BadgeProgressResponse>;
-	/** Features a badge on the profile (quest FeatureBadgeOnProfile). */
-	setFavoriteBadge(badgeId: number, isCommunityItem?: boolean): Promise<boolean>;
-	/** Crafts a game badge from a full set of trading cards (quest CraftGameBadge). */
-	craftBadge(appId: number, borderColor?: 0 | 1, levels?: number): Promise<SteamBadgeUnlocker.CraftBadgeResponse>;
-	/** App ids whose badges are marked ready to craft. */
-	getAppIdsReadyForCrafting(pageNumber?: number): Promise<number[]>;
-	/** Quest progress parsed from `<profile>/badges/<badgeId>`; works without a Web API key. */
-	getCommunityBadgeProgressFromProfile(badgeId?: number): Promise<SteamBadgeUnlocker.BadgeProgressResponse>;
-
-	/** Requests a broadcast manifest; `success === 'ready'` counts as watching (quest ViewBroadcast). */
-	getBroadcastManifest(steamId: string): Promise<SteamBadgeUnlocker.BroadcastMpd>;
-	/** Trending live broadcasts. */
-	getBroadcastTrendLinks(params?: SteamBadgeUnlocker.ContentQueryParams): Promise<SteamBadgeUnlocker.BroadcastLink[]>;
-	/** Searches the discussions (quest SearchInDiscussions). */
-	discussionsSearch(query: string): Promise<string>;
-	/** Trending guides. */
-	getGuidesTrendLinks(params?: SteamBadgeUnlocker.ContentQueryParams): Promise<SteamBadgeUnlocker.GuideLink[]>;
-
-	/** Sets the real name with `steamcommunity`'s `editProfile` (quest SetupCommunityRealName); its requests send `Accept-Language`. */
-	setRealName(realName: string): Promise<true>;
-	/** Selects an official game avatar (quest SetupCommunityAvatar). */
-	selectAvatar(appId: number, selectedAvatar?: number): Promise<true>;
-	/** Sets a profile background through `IPlayerService` with the store `webapi_token` (quest SetProfileBackground). */
-	setProfileBackground(itemId: string | number): Promise<{response: object}>;
-	/** Profile items owned by the account, through `IPlayerService` with the store `webapi_token`. */
-	getOwnedProfileItems(): Promise<{response: SteamBadgeUnlocker.OwnedProfileItems}>;
-	/** Logs an activity-feed upvote; resolves with the string `'null'`. */
-	logFriendActivityUpvote(): Promise<'null'>;
-	/** One page of the activity feed. */
-	getUserNews(start?: number | null): Promise<SteamBadgeUnlocker.UserNewsResponse>;
-	/** Friend posts from the activity feed that accept votes. */
-	getLastFriendPosts(minPosts?: number): Promise<SteamBadgeUnlocker.CommentActionParams[]>;
-	/** Votes on an activity-feed post. */
-	voteContent(params: SteamBadgeUnlocker.CommentActionParams & {action: SteamBadgeUnlocker.CommentActionType}): Promise<SteamBadgeUnlocker.SharedFilesActivity>;
-	/** Posts a review that is not public, comments disabled (quest RecommendGame). */
-	addGameRecommendation(appId: number, comment: string, rateUp?: boolean): Promise<{success: boolean, strError?: string}>;
-	/** Deletes the review of an app. */
-	deleteGameRecommendation(appId: number): Promise<string | object>;
-
-	/** Subscribes to a Workshop item (quest SubscribeToWorkshopItem). */
-	subscribeToSharedFile(fileId: string, appId: string | number): Promise<true>;
-	/** Unsubscribes from a Workshop item (cleanup of quest SubscribeToWorkshopItem). */
-	unsubscribeFromSharedFile(fileId: string, appId: string | number): Promise<true>;
-	/** Loads a shared file page; with the overlay user agent it counts as an overlay view (quest ViewGuideInOverlay). */
-	getSharedFileDetails(fileId: string | number, params?: {qs?: Record<string, string | number>, headers?: Record<string, string>}): Promise<string>;
-	/** Votes on a shared file (quests RateWorkshopItem, RateUpContentInActivityFeed). */
-	voteSharedFile(fileId: string, up?: boolean): Promise<true>;
-	/** Deletes an own shared file; `appId` defaults to `0` and `fileType` to `'videos'`, so pass `'screenshots'` for a screenshot. Rejects with `REJECTED_SHARED_FILE_DELETE`. */
-	deleteSharedFile(fileId: string, appId?: number, fileType?: SteamBadgeUnlocker.EFileTypeType): Promise<true>;
-	/**
-	 * Comments on a shared file and resolves with the comment id. Rejects with `MISSING_FILE_OWNER_STEAM_ID` or
-	 * `MISSING_FILE_ID` without the ids, `REJECTED_COMMENT_POST` with Steam's text as message, `ON_SUCCESS_ID_NOT_FOUND`
-	 * or `UNKNOWN_COMMENT_POST`.
-	 */
-	postSharedFileComment(steamId: string, fileId: string, comment: string, count?: number): Promise<string>;
-	/** Deletes a shared file comment and checks that it is gone; rejects with `REJECTED_COMMENT_DELETE` or `UNKNOWN_COMMENT_DELETE`. */
-	deleteSharedFileComment(steamId: string, fileId: string, commentId: string, count?: number): Promise<true>;
-
-	/** Videos shared on the profile. */
-	getProfileVideos(params?: {qs?: object}): Promise<SteamBadgeUnlocker.ProfileVideo[]>;
-	/** YouTube videos available for sharing; needs `setYoutubeCookies` first. */
-	fetchYoutubeVideos(): Promise<Array<{youtubeId: string}>>;
-	/** Shares YouTube videos on the profile and resolves with the number added (quest PostVideo); needs `setYoutubeCookies` first. */
-	postYoutubeVideo(youtubeIds: string | string[], appId?: number, otherAssoc?: string): Promise<number>;
-	/** Sets the YouTube cookies on the `steamcommunity` session; throws `MISSING_YOUTUBE_ACCESS_TOKEN` without `accessToken`. */
-	setYoutubeCookies(cookies: SteamBadgeUnlocker.YoutubeCookies): void;
-
-	/** Sets the store `snr` navigation cookie for the wishlist requests. */
-	makeNavCookie(snr: string, url: string): void;
-	/** Adds or removes a wishlist entry. */
-	modifyWishlist(navRef: string, appId: number, remove: boolean): Promise<SteamBadgeUnlocker.WishlistResponse>;
-	/** Adds an app to the wishlist (quest AddItemToWishlist). */
-	addToWishlist(appId: number, navRef?: string): Promise<SteamBadgeUnlocker.WishlistResponse>;
-	/** Removes an app from the wishlist. */
-	removeFromWishlist(appId: number, navRef?: string): Promise<SteamBadgeUnlocker.WishlistResponse>;
-
-	/** Trending Workshop items. */
-	getWorkshopTrendLinks(params?: SteamBadgeUnlocker.ContentQueryParams): Promise<SteamBadgeUnlocker.WorkshopLink[]>;
-	/**
-	 * Uploads a screenshot (quest PostScreenshot), private unless `visibility` is another
-	 * `EPublishedFileVisibility` value. Rejects with
-	 * `MISSING_TOKEN_FIELD`, `MISSING_WG_FIELD` or `MISSING_FORM_ACTION` when the upload form cannot be read,
-	 * `SCREENSHOT_UPLOAD_FAILED`, or the stream error of an unreadable file.
-	 */
-	uploadScreenshot(appId: number, title: string, description: string, file: SteamBadgeUnlocker.ReadableLike, visibility?: SteamBadgeUnlocker.EPublishedFileVisibility): Promise<{success: true, id: string}>;
-
-	/**
-	 * Creates the quest runner for the Community Leader badge. `options` are merged shallowly over
-	 * `resources/OCommunityLeaderDefault`: a passed object option such as `youtubeCookies` replaces the default object.
-	 */
-	createCommunityLeader(options?: Partial<SteamBadgeUnlocker.CommunityLeaderOptions> | null): SteamBadgeUnlocker.CCommunityLeader;
 }
+
+interface SteamBadgeUnlocker<C extends SteamBadgeUnlocker.SteamCommunityLike = SteamBadgeUnlocker.SteamCommunityLike> extends ProfileMethods, AppsMethods, BadgesMethods, BroadcastMethods, DiscussionsMethods, GuidesMethods, SharedfilesMethods, VideosMethods, WishlistMethods, WorkshopMethods, CCommunityLeaderMethods {}
 
 declare namespace SteamBadgeUnlocker {
 	export const ECommunityBadgeQuests: typeof ECommunityBadgeQuestsValues;
