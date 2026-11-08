@@ -1,329 +1,160 @@
 # Getting started
 
-`steam-badge-unlocker` completes the quests of the Steam Community Leader badge for bot accounts. It never
-handles credentials: it works on `steamcommunity` instances that are already logged in and, for two quests,
-on a `steam-user` client. This page covers what you need, how to run it, where every piece of data comes
-from and how to read a run. The quests themselves: [task catalog](tasks.md).
+In this tutorial you run the Community Leader tasks for one bot account, with a second account of yours as its
+master. You use the example script that ships with the package and write no code. At the end the bot has
+completed its first tasks, and you have followed them from the log to the badge page. The run takes a little
+over 6 minutes, most of it waiting.
 
-## What you need
+## Before you start
 
-- Node.js `>=10` for the package, `>=14` for `steam-user` 5 and the example scripts; `steamcommunity`
-  `>=3.43.1` (tested with 3.50.3); `steam-user` `>=5.0.0` for PlayGame and UseEmoticonInChat.
-- Several Steam accounts. The first one is the **master**: the friend of all others. It runs no quests in
-  that run; to complete its own quests, start another run with a different account in the first row. About 10
-  accounts is the setup these docs are written for (see [Steam limits](#steam-limits)).
-- For every account: a Steam Community profile that has been set up once (log in on steamcommunity.com and
-  finish "Set up Steam Profile", or call `community.setupProfile()` of `steamcommunity`), and Steam Guard
-  enabled: `start()` runs PostCommentOnFriendsPage only when the SetupSteamGuard quest is completed, because
-  Steam allows profile comments only with Steam Guard. For `examples/run-community-leader.js` that means a mobile
-  authenticator; email Steam Guard works there only with a stored refresh token (see below).
-- For the master: a full account (limited accounts cannot send friend invites), and friends must be allowed to
-  comment on its profile and screenshots (Edit Profile → Privacy Settings → Comments). Upload a screenshot on
-  the master and make it public: `start()` takes the id of the master's newest screenshot, also when that one
-  is private, and logs
-  `{friendsScreenshotFileId: null}` when the master has none; PostCommentOnFriendsScreenshot then fails with
-  `MISSING_FILE_ID`. The id, also `null`, is read once per process for all bots: after uploading the screenshot,
-  start the process again.
+You need Node.js 14 or newer (`node --version` shows it) and two Steam accounts that you own:
 
-## Run it with the example script
+- **the master**: a full account, one that has spent at least 5 USD on Steam. During the run it is the bot's
+  friend.
+- **the bot**: the account that runs the tasks.
 
-The fastest start for a new project: [`examples/run-community-leader.js`](../examples/run-community-leader.js) with
-[`examples/utils/login-accounts.js`](../examples/utils/login-accounts.js).
+Both accounts need:
 
-1. Install the libraries:
+- a Steam profile that has been set up once: log in on steamcommunity.com and finish "Set up Steam Profile";
+- Steam Guard with a mobile authenticator, and its `shared_secret`, e.g. from the `.maFile` of Steam Desktop
+  Authenticator.
 
-   ```bash
-   npm install steam-badge-unlocker steamcommunity steam-user steam-totp
-   ```
+The master also needs:
 
-2. Copy `examples/run-community-leader.js` and the folder `examples/utils/` from
-   `node_modules/steam-badge-unlocker/examples/` into your project.
-3. Write the accounts into a CSV file, master first, e.g. `accounts.csv` next to `run-community-leader.js` (any
-   path works, it is the first argument). The first line names the columns; more columns are ignored; values
-   must not contain commas:
+- a public screenshot as its newest screenshot: upload a screenshot on the master and make it public;
+- comments from friends allowed on its profile and screenshots: Edit Profile → Privacy Settings → Comments.
 
-   ```csv
-   username,password,shared_secret
-   master_account,master_password,base64SharedSecretOfTheMaster=
-   bot_account_1,bot_password_1,base64SharedSecretOfBot1=
-   ```
+Why there is a master: [How it works](how-it-works.md#the-master-and-the-bots).
 
-4. Run it, optionally with fewer accounts than the file has:
-
-   ```bash
-   node run-community-leader.js accounts.csv
-   node run-community-leader.js accounts.csv 4   # the master and 3 bots
-   YT_ACCESS_TOKEN=<youtube_accesstoken cookie> node run-community-leader.js accounts.csv
-   ```
-
-The script logs in the master, then every bot 10 seconds apart, runs `start()` and `finish()` for each bot
-with the master as friend, and logs everything with the account name. With 8 accounts in the file, 7 run
-the quests. Each bot stays logged in while its quests run; PlayGame alone keeps it busy for `playSeconds`
-(330 by default). If the master cannot log in, the script stops.
-
-`login-accounts.js` logs in without asking you: with the `shared_secret` it generates the mobile authenticator
-code, and after the first login it keeps a `steam-user` refresh token per account in
-`accounts.csv.tokens.json` (file mode 600) for the next logins; a token that expires within the next hour is not used. When a
-token login fails, the account is skipped with the Steam error: delete its entry to log in with the password
-again. An account that asks for an email code
-is skipped: give it a mobile authenticator, or log it in once with `steam-user` yourself (its `refreshToken`
-event hands you the token) and store the token in that file as `{"<username>": "<refreshToken>"}`. Keep both
-files out of version control.
-
-## Add it to a project that already uses steamcommunity
+## Step 1: Create a project folder
 
 ```bash
-npm install steam-badge-unlocker
+mkdir badge-run
+cd badge-run
+npm init -y
 ```
 
-```javascript
-const SteamBadgeUnlocker = require('steam-badge-unlocker');
+npm writes a `package.json` into the new folder, so the next step installs into this folder.
 
-// masterCommunity and each bot.community: logged-in steamcommunity instances
-async function runQuests(masterCommunity, bots) {
-	for (const bot of bots) {
-		const leader = new SteamBadgeUnlocker(bot.community).createCommunityLeader({
-			masterInstance: masterCommunity,
-			steamUser: bot.user, // only when your project runs steam-user
-			forceAddFriend: true,
-			forceRemoveFriend: true,
-		});
-		await leader.start().catch(console.error);
-		await leader.finish();
-	}
-}
+## Step 2: Install the packages
+
+```bash
+npm install steam-badge-unlocker steamcommunity steam-user steam-totp
 ```
 
-- Create each `SteamBadgeUnlocker` after `community.setCookies(cookies)`: the constructor reads the SteamID
-  and session id once. After a new login create a new one.
-- `forceAddFriend` adds the master even when the AddFriendToFriendsList quest is already done (as long as any
-  quest is open), because the other friend quests need the friendship; `forceRemoveFriend` removes it again in
-  `finish()`. Without a master, `forceRemoveFriend` removes `friendSteamId`, also a friend you had before.
-- Give every account its own `steamcommunity` instance. The master instance can be shared by all leaders.
+`steamcommunity` talks to the Steam website, `steam-user` logs in like the Steam client and plays the game,
+`steam-totp` makes the login codes from `shared_secret`. npm reports the added packages, and a `node_modules`
+folder appears.
 
-`steam-user` is the easiest way to get logged-in instances: it keeps the session alive and hands web cookies
-to `steamcommunity`. `steamcommunity.login()` works as well, but then PlayGame and UseEmoticonInChat are
-skipped. The minimum per account:
+## Step 3: Copy the example script
 
-```javascript
-const SteamUser = require('steam-user');
-const SteamCommunity = require('steamcommunity');
-
-// details: {accountName, password, twoFactorCode} or {refreshToken}
-function logIn(details) {
-	return new Promise((resolve, reject) => {
-		const user = new SteamUser();
-		user.once('error', reject);
-		user.once('webSession', (sessionId, cookies) => {
-			user.removeListener('error', reject);
-			user.on('error', error => console.error(error.message));
-			const community = new SteamCommunity();
-			community.setCookies(cookies);
-			resolve({community, user});
-		});
-		user.logOn(details);
-	});
-}
+```bash
+cp node_modules/steam-badge-unlocker/examples/run-community-leader.js .
+mkdir utils
+cp node_modules/steam-badge-unlocker/examples/utils/login-accounts.js utils/
 ```
 
-Call `user.logOff()` for every account at the end.
-
-### With quer/the-steam-awards
-
-[`examples/the-steam-awards-module.js`](../examples/the-steam-awards-module.js) is a module for
-[quer/the-steam-awards](https://github.com/quer/the-steam-awards). Copy it to `modules/CommunityBadge.js`,
-add `modules.push('CommunityBadge');` to `main.js` and install `steam-badge-unlocker` and `steamcommunity`
-in that project. The first bot of its account list becomes the master; every following bot runs the quests
-with it, using the core's web cookies (`options.webCookie`) and its client as `steamUser`. The module expects
-the core's default RunningMode Single: one account after another in one process. The core logs the next
-account in right away; with many accounts set `RunningMode.DelayBetweenAccountModes` in its `lib/Settings.js`
-to pace the logins (milliseconds, e.g. `10000`). PostVideo is off there; add `youtubeCookies`
-to its `createCommunityLeader` options to turn it on.
-
-## Where the data comes from
-
-| Data | Where to get it | Used for |
-|---|---|---|
-| `username`, `password` | your accounts | login |
-| `shared_secret` | the Steam Mobile Authenticator data of the account, e.g. the `.maFile` of Steam Desktop Authenticator or your own authenticator export | `login-accounts.js` generates the login code with `steam-totp`; without it an account that asks for a code is skipped |
-| refresh token | written by `login-accounts.js` after the first login | later logins without password |
-| master | one of your accounts, first row of the CSV | friend quests through `masterInstance` |
-| `friendSteamId` | SteamID64 (17 digits) of a friend, from `steamcommunity.com/profiles/<id>`; for a custom URL `steamcommunity.com/id/<name>` open `steamcommunity.com/id/<name>/?xml=1` and take `steamID64` | friend quests without a master |
-| `friendsScreenshotFileId` | the `id` in the URL of the friend's public screenshot, `steamcommunity.com/sharedfiles/filedetails/?id=<id>` | screenshot quests without a master; with a master it is read automatically |
-| `youtubeCookies` | browser cookies after linking YouTube, see [YouTube cookies](#youtube-cookies-for-postvideo) | PostVideo |
-| trading cards | one full set of cards of any game in the account's inventory | CraftGameBadge, and a background it drops for SetProfileBackground |
-| Web API key | not needed: progress is read from the badge page. If the account already has a key (<https://steamcommunity.com/dev/apikey>), the package finds it on its own (`fetchBadgesWithApiKey`, default `true`). `steamcommunity` 3.48 and later only read an existing key; 3.43–3.47 register one for `localhost` when the account has none, so set `fetchBadgesWithApiKey: false` with those versions if you do not want that. You can also pass it: `new SteamBadgeUnlocker(community, {apiKey})` | quest progress |
-| store `webapi_token` | read automatically from the points shop page | SetProfileBackground |
-
-### YouTube cookies for PostVideo
-
-PostVideo shares a video from a YouTube account linked to Steam. Steam keeps that link in a browser cookie,
-so you copy it once, in a browser where any of your Steam accounts is logged in:
-
-1. Open <https://steamcommunity.com/my/videos/link> and click **Access your YouTube videos**.
-2. Choose your Google account; Steam shows "Successfully linked your YouTube account".
-3. On that steamcommunity.com tab open the developer tools (F12) → **Application** → **Cookies** →
-   **https://steamcommunity.com** and copy the **Value** of `youtube_accesstoken` as the table shows it (it starts
-   with `%7B%22access_token`). The cookie is `HttpOnly`, so a script in the console cannot read it.
-
-   ![youtube_accesstoken in Application → Cookies](images/youtube-accesstoken-cookie.png)
-4. Pass the value as `youtubeCookies: {accessToken: '<value>'}` (`examples/run-community-leader.js`: the
-   `YT_ACCESS_TOKEN` environment variable).
-
-Steam only reads this access token, so the same value serves every account of a run. It is valid for about
-one hour after linking (`expires_in` 3599 inside the value). With an expired one Steam lists no videos, so
-PostVideo logs `false`; with `youtubeId` set it fails with `INVALID_YOUTUBE_ACCESS_TOKEN` instead. PostVideo
-runs early in each account's run, and `examples/run-community-leader.js` needs about 6 minutes per account
-(PlayGame), so bot number n posts about (n − 1) × 6 minutes after the start: copy a fresh token right before the
-run, and run the accounts that failed PostVideo again with a new token. The YouTube account needs at least one
-uploaded video that allows embedding (unlisted is fine); without one PostVideo resolves `false`. Leave
-`youtubeCookies` out to turn PostVideo off: it is skipped before any request with
-`SKIP_MISSING_YOUTUBE_ACCESS_TOKEN`.
-
-## What a run does
-
-`start()`:
-
-1. With `masterInstance` (`init()`): sets `friendSteamId` to the master when it is empty and, when the friend
-   is the master and `friendsScreenshotFileId` is empty, reads the master's newest screenshot and logs
-   `{friendsScreenshotFileId}`.
-2. Reads the open quests from the badge page (or the Web API with a key) and logs `{openQuests: N}`. With
-   nothing open it calls `finish()` and returns.
-3. Reads the account limits (`isLimitedAccount`, `vacBanned`, `tradeBanState`). When that request fails, the
-   account counts as full and unbanned, and the quests for full accounts run and may fail.
-4. Runs the open quests group by group, inside a group in the order Steam lists them: the simple quests;
-   the friend quests (PostCommentOnFriendsPage only when the SetupSteamGuard quest is completed); Trade (not
-   implemented, logs `false`; full accounts without trade ban); CraftGameBadge; PlayGame,
-   SetProfileBackground, FeatureBadgeOnProfile; PostCommentOnFriendsScreenshot and RecommendGame (full
-   accounts); RateWorkshopItem (full accounts without VAC ban).
-5. Reads the open quests again and logs `{openQuests, solvedQuests}`.
-
-`finish()` removes the friend when `forceRemoveFriend` is set. Put your own steps between `start()` and
-`finish()`.
-
-### Reading a run
-
-Each quest logs its name and a value; `examples/run-community-leader.js` puts the time and the account name in
-front. An excerpt:
+On Windows, copy the two files with the file manager. Your folder now looks like this:
 
 ```
-- { friendsScreenshotFileId: '3832055065' }
-- { openQuests: 9 }
-AddItemToWishlist OK
-PostVideo SKIP_MISSING_YOUTUBE_ACCESS_TOKEN
-ViewBroadcast false
-RecommendGame 429
-- { openQuests: 8, solvedQuests: 1 }
+badge-run/
+├── node_modules/
+├── package-lock.json
+├── package.json
+├── run-community-leader.js
+└── utils/
+    └── login-accounts.js
 ```
 
-| Value | Meaning |
-|---|---|
-| `OK` | the requests of the quest succeeded |
-| a `SKIP_*` code | something the quest needs was not provided, see [error codes](#error-codes) |
-| another code | the quest failed with this error: an [error code](#error-codes) of the package, or an HTTP status from `steamcommunity` such as `429` |
-| other text | the message of an error without a code: a Steam result name such as `RateLimitExceeded` (wait) or `AccessDenied`, or a `steamcommunity` message such as `Not Logged In` (log in again and create a new `SteamBadgeUnlocker`) |
-| `false` | the quest did not succeed and there was no error: nothing to do (no live broadcast, no badge ready to craft, no YouTube video) or Steam's answer was not a success |
+## Step 4: Write the accounts file
 
-`OK` means the requests succeeded, not that Steam counted the quest; compare `openQuests` before and after.
-A cleanup that fails afterwards (deleting the comment, status, screenshot, video or review, removing the
-wishlist entry, leaving the group, clearing the real name) is not logged, so check the account when it
-matters.
+Create the file `accounts.csv` in `badge-run` with three lines: the column names, the master, the bot.
 
-`error not able to get badge progress` means the badge page loaded but showed no quests (profile not set up,
-or the page changed); the `{openQuests: 0}` after it means "unreadable", not "done". When the progress request
-itself fails, `start()` rejects. Running again is safe: `start()` only runs the quests that are still open.
-
-In code, every automated quest method resolves `true` or `false` (BuyOrSellOnMarket and the three security
-quests resolve `null`, Trade `false`), and `leader.getLastError()` returns the error of the last quest call, or
-`null` when there was none: `error.code` for the package's codes and HTTP statuses, otherwise `error.message`.
-
-### Error codes
-
-Errors created by the package carry a code in `error.code` (`SteamBadgeUnlocker.EErrorCode`); errors of
-`steamcommunity` and `steam-user` pass through unchanged. The delete codes (`REJECTED_COMMENT_DELETE`,
-`UNKNOWN_COMMENT_DELETE`, `REJECTED_SHARED_FILE_DELETE`) only reach you when you call those methods yourself:
-inside the quests a failed cleanup is not logged.
-
-| Code | Meaning | What to do |
-|---|---|---|
-| `ACCESS_DENIED` | Steam's CDN (Akamai) answered `403 Access Denied`: web requests from this IP are blocked, the store included. `start()` stops at that request; `quest`, `method`, `url` and `reference` are on the error | wait before the next run, requests during the block can extend it; or retry through another IP or proxy |
-| `MISSING_COMMUNITY` | the constructor got `undefined`, `null` or an object without `getSessionID` instead of a `steamcommunity` instance | pass a logged-in instance |
-| `MISSING_FILE_ID` | no screenshot id for the screenshot comment | make the master's newest screenshot public, or set `friendsScreenshotFileId` |
-| `MISSING_FILE_OWNER_STEAM_ID` | no owner for the screenshot comment | set a friend |
-| `MISSING_FORM_ACTION`, `MISSING_TOKEN_FIELD`, `MISSING_WG_FIELD` | the screenshot upload form did not load or changed | retry later; report it if it stays |
-| `MISSING_YOUTUBE_ACCESS_TOKEN` | `setYoutubeCookies` got no `accessToken` | pass the cookie |
-| `INVALID_YOUTUBE_ACCESS_TOKEN` | Steam did not accept the YouTube access token | link YouTube again and copy a fresh cookie |
-| `NOT_FOUND_WEBAPI_TOKEN` | the points shop page had no `webapi_token` | check the session, or pass `apiToken` |
-| `ON_SUCCESS_ID_NOT_FOUND` | the comment was posted, but its id was not found | delete it by hand if needed |
-| `REJECTED_COMMENT_POST`, `REJECTED_COMMENT_DELETE` | Steam refused the comment action; Steam's text, when it sent one, is the error's `message` | e.g. wait when posting too often |
-| `REJECTED_SHARED_FILE_DELETE` | Steam refused to delete the screenshot or video | delete it by hand |
-| `SCREENSHOT_UPLOAD_FAILED` | Steam did not confirm the upload | retry later |
-| `UNKNOWN_COMMENT_POST`, `UNKNOWN_COMMENT_DELETE` | Steam's answer showed neither success nor error | retry later; report it if it stays |
-| `SKIP_MISSING_FRIEND` | no `masterInstance` and no `friendSteamId` | provide a friend |
-| `SKIP_MISSING_STEAM_USER` | no `steamUser` | pass your logged-in `steam-user` client |
-| `SKIP_MISSING_YOUTUBE_ACCESS_TOKEN` | no `youtubeCookies.accessToken` | see [YouTube cookies](#youtube-cookies-for-postvideo) |
-
-## Options
-
-`createCommunityLeader(options)` merges `options` shallowly over `resources/OCommunityLeaderDefault.js`: an
-object option such as `youtubeCookies` replaces the default object.
-
-### Options that unlock quests
-
-| Option | Default | Unlocks |
-|---|---|---|
-| `masterInstance` | `null` | friend quests; logged-in `steamcommunity` instance of the master |
-| `friendSteamId` | `null` | friend quests; set to the master's SteamID when it is empty and `masterInstance` is set |
-| `friendsScreenshotFileId` | `null` | PostCommentOnFriendsScreenshot, RateUpContentInActivityFeed; read from the master when `null` and the friend is the master |
-| `steamUser` | `null` | PlayGame, UseEmoticonInChat; logged-in `steam-user` client of the same account |
-| `youtubeCookies` | `{accessToken: null, authAccount: ''}` | PostVideo |
-| `craftGameBadgeAppId` | `null` | CraftGameBadge; `null` takes the first badge ready to craft |
-
-### Options with working defaults
-
-Every other option has a default that works. `CommunityLeaderOptions` in [`index.d.ts`](../index.d.ts) lists
-each one with the quest that uses it and its default, and your editor shows it on hover; the values are in
-[`resources/OCommunityLeaderDefault.js`](../resources/OCommunityLeaderDefault.js).
-
-To leave out a quest without an option, replace it on the leader, e.g. `leader.RecommendGame = async () => false`.
-A replacement can also do the quest your way: `start()` calls it with `this` as the leader when the quest is open
-and its group conditions hold (see What a run does), logs `OK` for `true`, and a thrown error is logged and kept in
-`getLastError()` like a failed quest, then the run continues.
-
-`new SteamBadgeUnlocker(community, options)` accepts `apiKey` (Web API key), `apiToken` (store
-`webapi_token`) and `customUrl` (custom profile URL name; `start()` finds it on its own).
-
-## Steam limits
-
-The examples and recommendations assume about 10 accounts. Steam limits what one machine may do; the
-ArchiSteamFarm documentation describes these limits well:
-
-- ArchiSteamFarm suggests owning up to 10 Steam accounts in total, based on Valve's guidelines
-  ([ASF FAQ: How many bots can I run](https://github.com/JustArchiNET/ArchiSteamFarm/wiki/FAQ#how-many-bots-can-i-run-with-asf)).
-- Too many logins in a short time end in `RateLimitExceeded`; ASF waits 10 seconds between logins
-  (`LoginLimiterDelay`), and `examples/run-community-leader.js` does the same
-  ([ASF configuration: LoginLimiterDelay](https://github.com/JustArchiNET/ArchiSteamFarm/wiki/Configuration#loginlimiterdelay)).
-- Steam's web services temporarily block an IP that sends too many requests; ASF keeps at least 300 ms
-  between two requests to the same web service (`WebLimiterDelay`)
-  ([ASF configuration: WebLimiterDelay](https://github.com/JustArchiNET/ArchiSteamFarm/wiki/Configuration#weblimiterdelay)).
-
-The package does no pacing of its own; `examples/run-community-leader.js` runs the accounts one after another. When
-quests log `429`, stop sending requests from that IP for minutes, not seconds, instead of retrying right away.
-PlayGame keeps an account busy for `playSeconds` and stops a game that another session of the account plays; if
-your accounts already play in ArchiSteamFarm, leave `steamUser` out: Steam lets only one session per account play
-at a time
-([steam-user: playingState](https://github.com/DoctorMcKay/node-steam-user#playingstate)).
-
-## Check progress
-
-```javascript
-const SteamBadgeUnlocker = require('steam-badge-unlocker');
-
-// community: a logged-in steamcommunity instance
-async function logProgress(community) {
-	const progress = await new SteamBadgeUnlocker(community).getCommunityBadgeProgressFromProfile(2);
-	for (const quest of progress.response.quests || []) {
-		console.log(SteamBadgeUnlocker.ECommunityBadgeQuests[quest.questid], quest.completed);
-	}
-}
+```csv
+username,password,shared_secret
+my_master,master_password,MastersSharedSecret=
+my_bot,bot_password,BotsSharedSecret=
 ```
+
+Put in the real login names, passwords and `shared_secret` values. The master stays in the first row. The file
+holds your passwords: keep it private.
+
+## Step 5: Run the tasks
+
+```bash
+node run-community-leader.js accounts.csv
+```
+
+The script logs in the master, waits 10 seconds and logs in the bot. Then the first lines appear. Notice the
+new file `accounts.csv.tokens.json` next to `accounts.csv`: the script keeps login tokens there, so later runs
+log in without password and code. Keep it as private as `accounts.csv`.
+
+Somewhere in the middle the log pauses for about 6 minutes: PlayGame plays a game for 330 seconds. Let it run.
+When the last line has appeared, the script logs both accounts off and you are back at the prompt.
+
+## Step 6: Read the output
+
+Every line starts with the time and the account name. A bot with 8 open tasks, run without a YouTube token in
+November 2026, logged these lines:
+
+```
+<time> my_bot - { friendsScreenshotFileId: '3832055065' }
+<time> my_bot - { openQuests: 8 }
+<time> my_bot PostVideo SKIP_MISSING_YOUTUBE_ACCESS_TOKEN
+<time> my_bot SetupCommunityRealName OK
+<time> my_bot AddFriendToFriendsList OK
+<time> my_bot PostCommentOnFriendsPage OK
+<time> my_bot RecommendGame OK
+<time> my_bot PostCommentOnFriendsScreenshot OK
+<time> my_bot RateWorkshopItem OK
+<time> my_bot - { openQuests: 3, solvedQuests: 5 }
+```
+
+Your log has its own tasks and numbers; a new bot has many more open tasks and so more lines. This bot had
+PlayGame done already, so its log has no 6-minute pause; on a bot with PlayGame open, `PlayGame OK` appears
+after the pause.
+
+- The first `openQuests` counts the tasks the bot still had open before the run.
+- Each task logs its name and a value. `OK` means its requests went through; `SKIP_…` that something it needs
+  was not given, here the YouTube token. Every value: [FAQ](faq.md#what-does-a-log-line-say).
+- The last line counts again. `solvedQuests` is what Steam counted for this run.
+
+`AddFriendToFriendsList OK` adds nothing to the count: the bot had that task already, and the script adds the
+master in every run because the other friend tasks need the friendship.
+
+## Step 7: See it on the badge page
+
+Open the bot's badge page, <https://steamcommunity.com/my/badges/2>, logged in as the bot. Steam shows the same
+result as the log: five grey tasks turned lit, and the bot moved up a level.
+
+![The bot's badge page before and after the run: 20 of 28 tasks became 25 of 28, Pillar of Community became Community Ambassador](images/badge-page-run.svg)
+
+Three tasks stayed grey, the `openQuests: 3` of the last log line: Post a video, because the run had no YouTube
+token, and Add a phone number and Try out the Community Market, which the library leaves to you. Steam Guard,
+the mobile app and the trade were lit before the run: the owner had done them by hand. Steam's names and icons
+of all 28 tasks: [tasks](tasks.md).
+
+## If something goes wrong
+
+- `login … Steam Guard code needed (email)`: the account uses email Steam Guard and was skipped, see
+  [FAQ](faq.md#why-is-an-account-skipped-at-login).
+- `login … Steam Guard code needed (authenticator)`: the `shared_secret` of that account is missing or wrong.
+- `{ friendsScreenshotFileId: null }`: the master has no screenshot, so the screenshot comment fails. Upload one,
+  make it public and run again.
+- `error not able to get badge progress`, then `{ openQuests: 0 }`: the badge page showed no tasks, e.g. the
+  profile is not set up. Here 0 means "unreadable", not "done".
+- `429` or `stopped Steam blocks web requests`: wait before the next run, see
+  [How to react to 429 or a blocked IP](how-to/handle-429-or-a-blocked-ip.md).
+
+## What you did
+
+You ran the tasks for one bot and followed the result from the log to the badge page. The master was the bot's
+friend only for the run. Running again is safe: only the tasks that are still open run.
+
+## Next
+
+- Run all your accounts: [How to run the quests for all your accounts](how-to/run-all-your-accounts.md).
+- Add PostVideo: [How to get the YouTube cookie](how-to/get-the-youtube-cookie.md).
+- See which tasks are still open: [How to check quest progress](how-to/check-quest-progress.md).
+- Change what the tasks use, e.g. the game to review: [options](reference/options.md).
+- Understand the run: [How it works](how-it-works.md).
