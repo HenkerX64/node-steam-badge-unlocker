@@ -40,7 +40,30 @@ jobs:
         run: |
           npm install
           npm run build --if-present
-      - name: Check type declarations
-        run: npm run test-types
       - name: Run node.js tests
         run: npm run test
+
+  types:
+    name: 'Type declarations'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+      - uses: actions/checkout@v4
+      - name: 'Cache node_modules'
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-lts-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-lts-
+
+      - name: Install Dependencies
+        run: npm install
+      - name: 'TypeScript 5.9.3: consumer tests, consumer patterns, API snapshot, parity'
+        run: npm run test-types
+      - name: 'TypeScript 4.0.5: consumer tests'
+        run: npm run test-types-floor
+      - name: 'TypeScript latest: consumer tests, consumer patterns and the packed package'
+        run: npm run test-types-latest

@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "module": "nodenext",
+    "target": "es2018",
+    "moduleResolution": "nodenext",
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "types": [],
+    "paths": {
+      "steam-badge-unlocker": ["../../index.d.ts"],
+      "steam-badge-unlocker/*": ["../../*"]
+    }
+  },
+  "files": ["consumer.ts", "consumer.js"]
+}
