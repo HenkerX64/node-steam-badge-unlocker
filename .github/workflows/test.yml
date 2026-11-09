@@ -13,14 +13,15 @@ jobs:
     name: 'Node.js v${{ matrix.node }}'
     runs-on: ubuntu-latest
     env:
-      TEST_ACCOUNTS: ${{ secrets.TEST_ACCOUNTS }}
+      TEST_ACCOUNTS: ${{ matrix.live && secrets.TEST_ACCOUNTS || '' }}
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        node:
-          - 16  # EOL: 2023-08
-          - 22  # EOL: 2025-10
+        include:
+          - node: 16  # EOL: 2023-08
+          - node: 22  # EOL: 2025-10
+            live: true
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:

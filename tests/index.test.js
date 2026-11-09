@@ -57,7 +57,7 @@ describe('CCommunityLeader class', () => {
 
 // Execute live tests only if you configured environment variable
 // Example: export TEST_ACCOUNTS="username;password;sharedKey;"
-if (typeof process.env.TEST_ACCOUNTS === 'undefined') {
+if (!process.env.TEST_ACCOUNTS) {
 	return;
 }
 describe('Real request tests', () => {
