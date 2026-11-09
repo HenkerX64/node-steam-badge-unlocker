@@ -386,6 +386,22 @@ it('start() - a quest replaced on the instance does not report the error of the 
 	assert.deepStrictEqual(logs.filter(([key]) => key !== '-'), [['AddItemToWishlist', 429], ['SearchInDiscussions', false]]);
 });
 
+it('start() - Trade runs on a limited account, not on a trade-banned one', async () => {
+	const run = async (steamUser) => {
+		const community = new SteamCommunityMock();
+		community.getSteamUser = (id, callback) => callback(null, Object.assign({vacBanned: false, tradeBanState: 'None', isLimitedAccount: false, customURL: 'test'}, steamUser));
+		const runUnlocker = new SteamBadgeUnlocker(community);
+		runUnlocker.getCommunityBadgeProgress = async () => ({response: {quests: [{questid: SteamBadgeUnlocker.ECommunityBadgeQuests.Trade, completed: false}]}});
+		const logs = [];
+		const runLeader = runUnlocker.createCommunityLeader({log: (key, value) => logs.push([key, value])});
+		runLeader.Trade = async () => true;
+		await settleOrTimeout(runLeader.start(), 2000);
+		return logs.filter(([key]) => key !== '-');
+	};
+	assert.deepStrictEqual(await run({isLimitedAccount: true}), [['Trade', 'OK']]);
+	assert.deepStrictEqual(await run({tradeBanState: 'Probation'}), []);
+});
+
 it('quests - a missing friend, steamUser or YouTube token is a skip with its code', async () => {
 	const skipLeader = new SteamBadgeUnlocker(new SteamCommunityMock()).createCommunityLeader({youtubeCookies: {accessToken: null}});
 	const skips = [];

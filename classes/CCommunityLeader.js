@@ -294,7 +294,7 @@ function CCommunityLeader(communityBadge, options) {
 			'RateUpContentInActivityFeed',
 			'UseEmoticonInChat',
 		]));
-		if (!this.isLimitedAccount && !this.tradeBanState) {
+		if (!this.tradeBanState) {
 			await execute(['Trade']);
 		}
 		// add delay after crafting

@@ -49,7 +49,7 @@ The screenshot id is read once per process for all bots, also when it is `null`.
 
 | Account state                                | Quests that `start()` does not run                                     |
 |----------------------------------------------|------------------------------------------------------------------------|
-| limited                                      | PostCommentOnFriendsScreenshot, RecommendGame, RateWorkshopItem, Trade |
+| limited                                      | PostCommentOnFriendsScreenshot, RecommendGame, RateWorkshopItem        |
 | VAC-banned                                   | RateWorkshopItem                                                       |
 | trade-banned                                 | Trade                                                                  |
 | SetupSteamGuard quest open (Steam Guard off) | PostCommentOnFriendsPage                                               |

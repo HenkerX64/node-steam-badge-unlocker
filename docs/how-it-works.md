@@ -66,7 +66,8 @@ Each bot runs through `start()` and then `finish()`:
 	2. the friend tasks. Adding the friend comes first in Steam's order, and `forceAddFriend` runs it even
 	   when it is done, because the others need the friendship. The profile comment runs only when the
 	   SetupSteamGuard task is done, because Steam allows profile comments only from accounts with Steam Guard;
-	3. Trade, for full accounts without a trade ban; it is not implemented and logs `false`;
+	3. Trade, for accounts without a trade ban, limited ones included; it is not implemented and logs `false`
+	   unless you replace it;
 	4. CraftGameBadge, before the background task, because crafting can drop a profile background. The run
 	   keeps the dropped background, because right after crafting Steam may not list it as owned yet;
 	5. PlayGame, SetProfileBackground and FeatureBadgeOnProfile. The late place helps the featured badge:

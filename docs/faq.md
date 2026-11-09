@@ -109,8 +109,8 @@ Without the example script, the default logger writes `DD-MM-YYYY HH:MM - <Steam
 
 - done tasks never run, and neither do Steam Guard, the phone, the mobile authenticator and the Market;
 - PostCommentOnFriendsPage runs only when Steam Guard is enabled (the SetupSteamGuard task is done);
-- limited accounts skip three tasks, VAC-banned accounts the Workshop vote; Trade runs only on full accounts
-  without a trade ban and logs `false`;
+- limited accounts skip three tasks, VAC-banned accounts the Workshop vote; Trade runs on every account
+  without a trade ban and logs `false` unless you replace it;
 - after `ACCESS_DENIED` no further task runs.
 
 ## When Steam pushes back

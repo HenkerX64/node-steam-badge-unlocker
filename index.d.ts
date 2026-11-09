@@ -358,7 +358,7 @@ declare namespace SteamBadgeUnlocker {
 		SubscribeToWorkshopItem(): Promise<boolean>;
 		/** Quest 121: opens `guideFileId` or a trending guide with the Steam overlay user agent. */
 		ViewGuideInOverlay(): Promise<boolean>;
-		/** Quest 122: not implemented; resolves `false`; `start()` calls it unless the account is limited or trade-banned. */
+		/** Quest 122: not implemented; resolves `false`; `start()` calls it unless the account is trade-banned, so a replacement can let a limited account accept a gift. */
 		Trade(): Promise<boolean>;
 		/** Quest 123: searches the discussions for `discussionsKeyword`. */
 		SearchInDiscussions(): Promise<boolean>;
