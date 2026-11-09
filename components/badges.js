@@ -1,5 +1,5 @@
 const SteamBadgeUnlocker = require('../index');
-const SteamCommunityHelpers = require('steamcommunity/components/helpers');
+const {eresultError} = require('./steamcommunity-helpers');
 
 /**
  * @link https://partner.steamgames.com/doc/webapi/IPlayerService#GetCommunityBadgeProgress
@@ -78,7 +78,7 @@ SteamBadgeUnlocker.prototype.craftBadge = async function (appId, borderColor = 0
 			'Referer': `${this.getProfileUrl()}/gamecards/${appId}/`,
 		}
 	});
-	const error = SteamCommunityHelpers.eresultError(body.success);
+	const error = eresultError(body.success);
 	if (error !== null) {
 		throw error;
 	}

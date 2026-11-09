@@ -1,6 +1,6 @@
 const SteamBadgeUnlocker = require('../index');
 
-const SteamCommunityHelpers = require('steamcommunity/components/helpers');
+const {eresultError} = require('./steamcommunity-helpers');
 const {getActionUrl, createError} = require('./helpers');
 const EErrorCode = require('../resources/EErrorCode');
 
@@ -25,7 +25,7 @@ SteamBadgeUnlocker.prototype.subscribeToSharedFile = async function (fileId, app
 			'Referer': 'https://steamcommunity.com/sharedfiles/filedetails/?id=' + fileId,
 		}
 	});
-	const error = SteamCommunityHelpers.eresultError(body.success);
+	const error = eresultError(body.success);
 	if (error !== null) {
 		throw error;
 	}
@@ -52,7 +52,7 @@ SteamBadgeUnlocker.prototype.unsubscribeFromSharedFile = async function (fileId,
 			'Referer': 'https://steamcommunity.com/sharedfiles/filedetails/?id=' + fileId,
 		}
 	});
-	const error = SteamCommunityHelpers.eresultError(body.success);
+	const error = eresultError(body.success);
 	if (error !== null) {
 		throw error;
 	}
@@ -99,7 +99,7 @@ SteamBadgeUnlocker.prototype.voteSharedFile = async function (fileId, up = true)
 			'Referer': 'https://steamcommunity.com/sharedfiles/filedetails/?id=' + fileId,
 		}
 	});
-	const error = SteamCommunityHelpers.eresultError(body.success);
+	const error = eresultError(body.success);
 	if (error !== null) {
 		throw error;
 	}

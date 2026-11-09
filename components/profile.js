@@ -1,6 +1,6 @@
 const SteamBadgeUnlocker = require('../index');
 
-const SteamCommunityHelpers = require('steamcommunity/components/helpers');
+const {eresultError} = require('./steamcommunity-helpers');
 const {getActionUrl, withMissingRequiredHeaders} = require("./helpers");
 
 /** @type {import('../index')['selectAvatar']} */
@@ -23,7 +23,7 @@ SteamBadgeUnlocker.prototype.selectAvatar = async function (appId, selectedAvata
 			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
 		}
 	});
-	const error = SteamCommunityHelpers.eresultError(body.success);
+	const error = eresultError(body.success);
 	if (error !== null) {
 		throw error;
 	}
