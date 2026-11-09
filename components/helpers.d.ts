@@ -24,7 +24,7 @@ export function createError<T extends ErrorCode>(code: T, message?: string): Err
 export function getAccessDeniedError(
 	response: {statusCode?: number, headers?: {[name: string]: unknown}} | null | undefined,
 	body: unknown,
-	request?: {url?: string, uri?: string, method?: string},
+	request?: Pick<SteamBadgeUnlocker.RequestParams, 'url' | 'uri' | 'method'>,
 ): (Error & {code: 'ACCESS_DENIED', statusCode: 403, reference: string | null, url: string | null, method: string}) | null;
 /**
  * Runs `run`; until it settles, `editOptions` edits every request of `community` before it is sent.

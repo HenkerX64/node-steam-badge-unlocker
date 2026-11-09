@@ -139,5 +139,5 @@ SteamBadgeUnlocker.prototype.setYoutubeCookies = function (cookies) {
 		cookieStrings.push('youtube_refreshtoken=' + decodeURI(cookies.refreshToken) + ';path=/');
 	}
 
-	this._community.setCookies(cookieStrings);
+	this.getCommunity().setCookies(cookieStrings);
 }

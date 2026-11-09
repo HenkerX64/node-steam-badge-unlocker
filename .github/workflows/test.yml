@@ -61,7 +61,7 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
-      - name: 'TypeScript 5.9.3: consumer tests, consumer patterns, API snapshot, parity'
+      - name: 'TypeScript 5.9.3: consumer tests, consumer patterns, API snapshot, runtime JSDoc, parity'
         run: npm run test-types
       - name: 'TypeScript 4.0.5: consumer tests'
         run: npm run test-types-floor

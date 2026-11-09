@@ -37,7 +37,7 @@ function packageModules() {
 
 /**
  * @param {string} file
- * @returns {Array<string>} the public members the module assigns to SteamBadgeUnlocker.prototype
+ * @returns {Array<string>} the members the module assigns to SteamBadgeUnlocker.prototype, internal ones included
  */
 function prototypeMethods(file) {
 	const source = fs.readFileSync(path.join(root, file), 'utf8');
@@ -47,7 +47,7 @@ function prototypeMethods(file) {
 	while ((match = pattern.exec(source))) {
 		names.push(match[1]);
 	}
-	return names.filter(name => !name.startsWith('_')).sort();
+	return names.sort();
 }
 
 /**

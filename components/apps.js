@@ -48,7 +48,7 @@ SteamBadgeUnlocker.prototype.generateNewDiscoveryQueue = function (eQueueType = 
 
 /** @type {import('../index')['finishDiscoveryQueue']} */
 SteamBadgeUnlocker.prototype.finishDiscoveryQueue = function () {
-	return this.generateNewDiscoveryQueue().then((result) => {
+	return this.generateNewDiscoveryQueue().then(/** @returns {ReturnType<import('../index')['finishDiscoveryQueue']>} */ (result) => {
 		/** @var {Promise[]} */
 		const queue = [];
 		for (let appId of result.queue) {

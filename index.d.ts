@@ -323,8 +323,8 @@ declare namespace SteamBadgeUnlocker {
 		start(): Promise<void>;
 		/** Removes the friend when `forceRemoveFriend` is set and resolves `false` when that fails; otherwise resolves `true`. Safe to call after `start()`. */
 		finish(): Promise<boolean>;
-		/** Error of the last quest call: the request error, or an error with a `SKIP_*` code; `null` when there was none. */
-		getLastError(): Error | null;
+		/** Error of the last quest call: the request error, or an error with a `SKIP_*` code; after `start()` rejected with `ACCESS_DENIED`, that error; `null` when there was none. */
+		getLastError(): (Error & {code?: string | number}) | null;
 
 		/** Quest 101: joins `joinGroupId` and leaves it again with `leaveGroupAutomatically`. */
 		JoinGroup(): Promise<boolean>;

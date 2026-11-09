@@ -65,7 +65,7 @@
   "scripts": {
     "test": "mocha tests/index.test.js --timeout 20000",
     "test-cov": "nyc mocha tests/index.test.js --timeout 20000",
-    "test-types": "tsc -p tests/types && tsc -p tests/types/consumer-patterns && node tests/types/api-surface.js --check && node --test tests/types/parity.test.js",
+    "test-types": "tsc -p tests/types && tsc -p tests/types/consumer-patterns && node tests/types/api-surface.js --check && tsc -p tests/types/library && node --test tests/types/parity.test.js",
     "test-types-floor": "npx -y -p typescript@4.0.5 tsc -p tests/types",
     "test-types-latest": "npx -y -p typescript@latest tsc -p tests/types/tsconfig.latest.json && npx -y -p typescript@latest tsc -p tests/types/consumer-patterns --module nodenext --moduleResolution nodenext && node tests/types/packed-consumer.js latest",
     "api-surface": "node tests/types/api-surface.js --write"

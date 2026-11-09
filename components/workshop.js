@@ -23,12 +23,7 @@ SteamBadgeUnlocker.prototype.getWorkshopTrendLinks = async function (params = {}
 	return links;
 }
 
-/**
- * @param {number} appId
- * @param {import('../index').EFileTypeType} type
- * @returns {Promise<{url: string, params: {title: string, description: string}}>}
- * @private
- */
+/** @type {import('../index')['_getUgcUploadForm']} */
 SteamBadgeUnlocker.prototype._getUgcUploadForm = async function (appId = 767, type = 'images') {
 	const fileType = SteamBadgeUnlocker.EFileType[type];
 	const html = await this.get({
@@ -80,7 +75,7 @@ SteamBadgeUnlocker.prototype._getUgcUploadForm = async function (appId = 767, ty
 }
 
 /**
- * @param {import('fs').ReadStream|null} file
+ * @param {import('../index').ReadableLike|null} file
  * @returns {Promise<never>}
  */
 function firstStreamError(file) {
@@ -92,7 +87,7 @@ function firstStreamError(file) {
 }
 
 /**
- * @param {import('fs').ReadStream|null} file
+ * @param {import('../index').ReadableLike|null} file
  */
 function closeFile(file) {
 	if (file && typeof file.destroy === 'function') {

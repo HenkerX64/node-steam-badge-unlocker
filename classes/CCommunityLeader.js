@@ -99,7 +99,7 @@ function guardOverriddenQuest(leader, questName) {
 
 /**
  * @param {boolean|null} result
- * @param {Error|null} error
+ * @param {ReturnType<import('../index').CCommunityLeader['getLastError']>} error
  * @returns {boolean|null|string|number}
  */
 function questLogValue(result, error) {
@@ -156,7 +156,7 @@ function CCommunityLeader(communityBadge, options) {
 	this.isLimitedAccount = false;
 	this.vacBanned = false;
 	this.tradeBanState = false;
-	/** @type {Error|null} */
+	/** @type {ReturnType<import('../index').CCommunityLeader['getLastError']>} */
 	this._lastError = null;
 	this._accessDenied = null;
 
@@ -325,7 +325,7 @@ function CCommunityLeader(communityBadge, options) {
 		// steam client only
 		// vac banned account
 	};
-	this.start = async function () {
+	this.start = async () => {
 		this._accessDenied = null;
 		const communities = [this._community, this.options.masterInstance].filter((community, i, all) => community
 			&& typeof community.on === 'function' && typeof community.removeListener === 'function' && all.indexOf(community) === i);
@@ -714,9 +714,7 @@ CCommunityLeader.prototype.UseEmoticonInChat = async function () {
 }
 
 
-/**
- * @returns {Error|null}
- */
+/** @type {import('../index').CCommunityLeader['getLastError']} */
 CCommunityLeader.prototype.getLastError = function () {
 	return this._lastError;
 }

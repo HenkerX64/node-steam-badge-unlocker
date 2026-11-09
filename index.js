@@ -11,7 +11,6 @@ const {createError, getAccessDeniedError, withMissingRequiredHeaders} = require(
  * @param {import('./index').SteamCommunityLike} SteamCommunity
  * @param {{apiKey?: string, apiToken?: string, customUrl?: string}} options
  * @constructor
- * @returns {SteamBadgeUnlocker}
  */
 function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 	// !SteamCommunity instanceof community
@@ -88,6 +87,7 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 
 	/**
 	 * Fetch api key only one time.
+	 * @this {SteamBadgeUnlocker}
 	 * @returns {Promise<string>}
 	 */
 	this.getWebApiKey = async function () {
@@ -103,6 +103,7 @@ function SteamBadgeUnlocker(SteamCommunity, options = {}) {
 
 	/**
 	 * Fetch api token only one time.
+	 * @this {SteamBadgeUnlocker}
 	 * @returns {Promise<string>}
 	 */
 	this.getWebApiToken = async function () {

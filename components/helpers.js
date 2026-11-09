@@ -18,7 +18,7 @@ exports.createError = (code, message = code) => Object.assign(new Error(message)
 /**
  * @param {{statusCode?: number, headers?: Object<string, *>}|null|undefined} response
  * @param {*} body
- * @param {{url?: string, uri?: string, method?: string}} [request]
+ * @param {Pick<import('../index').RequestParams, 'url'|'uri'|'method'>} [request]
  * @returns {(Error & {code: 'ACCESS_DENIED', statusCode: 403, reference: string|null, url: string|null, method: string})|null}
  */
 exports.getAccessDeniedError = (response, body, request = {}) => {
@@ -33,7 +33,7 @@ exports.getAccessDeniedError = (response, body, request = {}) => {
 	const reference = page.match(/Reference #([0-9a-f.]+)/i);
 	const url = request.url || request.uri;
 	return Object.assign(exports.createError('ACCESS_DENIED'), {
-		statusCode: 403,
+		statusCode: /** @type {403} */ (403),
 		reference: reference ? reference[1] : null,
 		url: typeof url === 'string' ? url.split('?')[0] : null,
 		method: String(request.method || 'GET').toUpperCase(),
@@ -43,8 +43,8 @@ exports.getAccessDeniedError = (response, body, request = {}) => {
 const previousOfFinishedHook = new WeakMap();
 
 /**
- * @param {Function} [hook]
- * @returns {Function|undefined}
+ * @param {import('../index').SteamCommunityLike['onPreHttpRequest']} [hook]
+ * @returns {import('../index').SteamCommunityLike['onPreHttpRequest']}
  */
 function skipFinishedHooks(hook) {
 	while (previousOfFinishedHook.has(hook)) {

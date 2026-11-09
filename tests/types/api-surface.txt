@@ -126,7 +126,7 @@ interface CCommunityLeader.UseEmoticonInChat: () => Promise<boolean>
 interface CCommunityLeader.ViewBroadcast: () => Promise<boolean>
 interface CCommunityLeader.ViewGuideInOverlay: () => Promise<boolean>
 interface CCommunityLeader.finish: () => Promise<boolean>
-interface CCommunityLeader.getLastError: () => Error | null
+interface CCommunityLeader.getLastError: () => (Error & { code?: number | string | undefined; }) | null
 interface CCommunityLeader.init: () => Promise<void>
 interface CCommunityLeader.isLimitedAccount: boolean
 interface CCommunityLeader.log: (key: string, value: unknown) => void
@@ -326,7 +326,7 @@ module components/helpers type CommentType = "ClanAnnouncement" | "ForumTopic" |
 module components/helpers type ErrorCode = "ACCESS_DENIED" | "INVALID_YOUTUBE_ACCESS_TOKEN" | "MISSING_COMMUNITY" | "MISSING_FILE_ID" | "MISSING_FILE_OWNER_STEAM_ID" | "MISSING_FORM_ACTION" | "MISSING_TOKEN_FIELD" | "MISSING_WG_FIELD" | "MISSING_YOUTUBE_ACCESS_TOKEN" | "NOT_FOUND_WEBAPI_TOKEN" | "ON_SUCCESS_ID_NOT_FOUND" | "REJECTED_COMMENT_DELETE" | "REJECTED_COMMENT_POST" | "REJECTED_SHARED_FILE_DELETE" | "SCREENSHOT_UPLOAD_FAILED" | "SKIP_MISSING_FRIEND" | "SKIP_MISSING_STEAM_USER" | "SKIP_MISSING_YOUTUBE_ACCESS_TOKEN" | "UNKNOWN_COMMENT_DELETE" | "UNKNOWN_COMMENT_POST"
 module components/helpers createError: <T extends ErrorCode>(code: T, message?: string | undefined) => Error & { code: T; }
 module components/helpers delay: (seconds: number) => Promise<void>
-module components/helpers getAccessDeniedError: (response: null | undefined | { statusCode?: number | undefined; headers?: undefined | { [name: string]: unknown; }; }, body: unknown, request?: undefined | { url?: string | undefined; uri?: string | undefined; method?: string | undefined; }) => (Error & { code: "ACCESS_DENIED"; statusCode: 403; reference: null | string; url: null | string; method: string; }) | null
+module components/helpers getAccessDeniedError: (response: null | undefined | { statusCode?: number | undefined; headers?: undefined | { [name: string]: unknown; }; }, body: unknown, request?: Pick<SteamBadgeUnlocker.RequestParams, "method" | "uri" | "url"> | undefined) => (Error & { code: "ACCESS_DENIED"; statusCode: 403; reference: null | string; url: null | string; method: string; }) | null
 module components/helpers getActionUrl: (params: SteamBadgeUnlocker.CommentActionParams) => string
 module components/helpers isSteamId: (value: string) => boolean
 module components/helpers parseConfigString: (config: string, delimiter?: string | undefined) => { accountName: string; password: string; secret: string; params: string[]; }[]
